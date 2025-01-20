@@ -21,10 +21,11 @@
 
 ## 🎥 Demo
 
-在线使用：[阿里云节点（推荐，高速）](https://skline.streamlit.app/) [谷歌云节点（慢）](https://skline.streamlit.app/)  
+在线使用：[阿里云节点（推荐，高速）](https://skline.streamlit.app/)  [谷歌云节点（慢）](https://skline.streamlit.app/)  
 视频演示：[点击播放](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
 动画演示：  
-![https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif](https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif)
+![Screenity video - Jan 20, 2025](https://github.com/user-attachments/assets/ea639765-9e44-486a-a753-4841fdf1bc2d)
+
 
 ## 🙏 致谢
 
