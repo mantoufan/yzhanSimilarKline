@@ -2,11 +2,14 @@
 
 ## 系统简介
 
-这是一个基于人工智能和大数据技术的 A 股市场分析系统，集成了技术分析和智能问答功能。系统能够自动识别相似 K 线形态，预测可能的价格走势，分析不同持仓期的风险收益，并提供基于实际市场数据的智能问答服务。系统采用先进的机器学习算法和自然语言处理技术，为投资者提供客观、全面的市场分析支持。系统整合了多种技术指标和分析方法，通过数据驱动的方式帮助投资者做出更理性的投资决策。
+这个系统整合了技术分析和智能问答功能，基于 GPT-4o-mini、RAG 检索增强生成等人工智能技术为 A 股市场提供分析支持。系统主要功能包括基于皮尔逊相关系数和欧氏距离的相似 K 线形态识别、价格走势预测、持仓期风险收益分析，并提供基于市场实时数据的智能问答服务。
+
+系统采用 TF-IDF 向量化、SVD 降维等机器学习算法和自然语言处理技术，结合 MACD、RSI 等技术指标和分析方法，致力于通过数据驱动的方式为投资决策提供参考。系统设计的目标是帮助投资者更全面地了解市场信息，理性权衡投资风险。
 
 ## Demo
-[Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)    
-![business-ai-demo (1)](https://github.com/user-attachments/assets/230df622-bc67-4407-94e6-ee16a0c8929c)  
+
+[Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
+![business-ai-demo (1)](https://github.com/user-attachments/assets/230df622-bc67-4407-94e6-ee16a0c8929c)
 
 ## 致谢
 
@@ -46,6 +49,7 @@ pip install -r requirements.txt
 API_KEY=your_api_key
 API_BASE=https://api.openai.com
 MODEL=gpt-4
+PROXY_URL=your_proxy_url # 可选，用于访问境外API
 ```
 
 5. 启动应用
@@ -59,7 +63,8 @@ streamlit run app.py
 1. **证券搜索**：
 
    - 在搜索框输入股票代码或名称
-   - 系统会显示匹配的证券列表
+   - 系统会显示匹配的证券列表，包括股票、指数和 ETF
+   - 支持模糊搜索和智能匹配
 
 2. **K 线分析**：
 
@@ -71,6 +76,7 @@ streamlit run app.py
 
    - 在问答输入框输入您的问题
    - 系统会基于市场数据提供专业分析
+   - 支持多轮对话和深度分析
 
 4. **数据导出**：
    - 收益预测表可以导出 CSV
@@ -79,7 +85,7 @@ streamlit run app.py
 ### 使用提示
 
 - 建议使用 Chrome 或 Firefox 浏览器获得最佳体验
-- 首次加载可能需要一些时间，请耐心等待
+- 首次加载可能需要一些时间，请耐心等待缓存生成
 - 图表支持缩放、平移等交互操作
 - 智能问答支持多轮对话
 
@@ -147,6 +153,11 @@ def calculate_similarity(window1, window2):
     - 使用scipy.spatial.distance.euclidean计算欧氏距离
     - 通过加权平均综合两个指标
 
+    改进更新：
+    - 添加数据有效性验证
+    - 优化相似度计算逻辑
+    - 增加异常处理机制
+
     输入：
     - window1, window2: 两个价格序列
 
@@ -173,64 +184,6 @@ def calculate_similarity(window1, window2):
         return similarity
     except:
         return 0
-
-def find_similar_patterns(df, window_size=30, top_n=3):
-    """
-    查找最相似的历史K线模式
-
-    实现流程：
-    1. 提取当前市场的最近K线数据
-    2. 使用滑动窗口遍历历史数据
-    3. 对每个历史片段计算与当前K线的相似度
-    4. 保存并返回相似度最高的记录
-
-    技术要点：
-    - 使用pandas的时间序列切片功能
-    - 实现滑动窗口扫描
-    - 动态计算相似度得分
-    - 维护相似度排序
-
-    参数：
-    - df: pandas.DataFrame，包含OHLCV数据
-    - window_size: int，比较窗口的大小
-    - top_n: int，返回的最相似记录数量
-
-    返回：
-    - list：包含相似K线的详细信息
-    """
-    # 获取最近的价格窗口
-    recent_window = df.tail(window_size)['close']
-    similar_patterns = []
-
-    # 预留足够的未来数据用于分析（窗口大小的2倍加7天）
-    max_i = len(df) - (window_size * 2 + 7)
-
-    # 遍历历史数据寻找相似模式
-    for i in range(max_i):
-        # 提取历史窗口数据
-        historical_window = df.iloc[i:i+window_size]['close']
-        future_data = df.iloc[i+window_size:i+window_size+7]
-
-        # 跳过数据不完整的情况
-        if len(future_data) < 7:
-            continue
-
-        # 计算相似度
-        similarity = calculate_similarity(recent_window, historical_window)
-
-        # 保存相似度高于0的模式
-        if similarity > 0:
-            similar_patterns.append({
-                'start_date': df.iloc[i]['trade_date'],  # 历史片段的开始日期
-                'end_date': df.iloc[i+window_size-1]['trade_date'],  # 结束日期
-                'similarity': similarity,  # 相似度得分
-                'pattern_data': df.iloc[i:i+window_size],  # 历史K线数据
-                'future_data': future_data  # 后续7天数据用于分析
-            })
-
-    # 按相似度排序并返回前top_n个结果
-    similar_patterns.sort(key=lambda x: x['similarity'], reverse=True)
-    return similar_patterns[:top_n]
 ```
 
 应用的核心技术：
@@ -242,26 +195,20 @@ def find_similar_patterns(df, window_size=30, top_n=3):
 - **数据标准化**：使用基于首日价格的百分比变化进行序列标准化
 - **加权评分系统**：综合相关系数（权重 0.7）和距离指标（权重 0.3）计算最终相似度
 
-关键技术：
+### 2. 智能问答系统增强
 
-- 时间序列标准化：将不同时期的价格序列转换为可比较的形式，消除基期差异影响
-- 欧几里得距离：计算价格序列间的距离相似度，评估走势形态的接近程度
-- 皮尔逊相关系数：评估走势的相关性，衡量价格变动的一致性
-- 综合评分机制：结合多个指标计算最终相似度，提高匹配的准确性
-
-### 2. 智能问答系统
-
-系统采用 RAG（检索增强生成）技术架构，通过向量化检索和大语言模型的组合，实现基于市场数据的智能问答：
+系统采用最新的 RAG（检索增强生成）技术架构，通过向量化检索和大语言模型的组合，实现基于市场数据的智能问答：
 
 ```python
 def create_text_chunks(security, current_df, similar_patterns, holding_stats):
     """
-    构建结构化文本块供检索
+    构建结构化文本块供检索（2024更新版）
 
     实现原理：
     1. 将不同类型的市场数据转换为结构化文本
     2. 对文本进行分块，便于后续检索
     3. 每个文本块包含特定主题的完整信息
+    4. 新增风险分析和技术指标维度
 
     文本块类型：
     - 证券基本信息
@@ -269,6 +216,8 @@ def create_text_chunks(security, current_df, similar_patterns, holding_stats):
     - 历史表现分析
     - 相似K线分析
     - 持仓收益分析
+    - 技术指标分析（新增）
+    - 风险评估报告（新增）
 
     参数：
     - security: dict，证券基本信息
@@ -304,29 +253,31 @@ def create_text_chunks(security, current_df, similar_patterns, holding_stats):
         """
         chunks.append(("latest_market", latest_market))
 
-        # 其他文本块构建...
+        # 添加其他分析维度...
 
     return chunks
 
 class ChineseTextVectorizer:
     """
-    中文文本向量化处理器
+    中文文本向量化处理器（2024优化版）
 
     技术实现：
     1. 结合jieba分词和TF-IDF进行文本特征提取
     2. 使用SVD进行降维，获得稠密向量表示
     3. 对向量进行归一化，提高相似度计算的准确性
+    4. 新增缓存机制，提升处理效率
 
     主要组件：
     - jieba：中文分词
     - TfidfVectorizer：文本特征提取
     - TruncatedSVD：降维处理
+    - LRU缓存：优化性能
     """
     def __init__(self, vector_size=100):
         # TF-IDF向量化器配置
         self.tfidf = TfidfVectorizer(
             tokenizer=self._tokenize,  # 使用自定义分词器
-            max_features=5000,  # 限制特征数量
+            max_features=2000,  # 限制特征数量
             token_pattern=None  # 禁用默认的token模式
         )
         # SVD降维配置
@@ -336,6 +287,10 @@ class ChineseTextVectorizer:
         )
         self.is_fitted = False
 
+        # 预加载结巴词典
+        jieba.initialize()
+
+    @lru_cache(maxsize=1000)  # 缓存分词结果
     def _tokenize(self, text):
         """
         中文分词处理
@@ -344,245 +299,255 @@ class ChineseTextVectorizer:
         1. 清理文本中的特殊字符
         2. 使用jieba进行分词
         3. 过滤空白词
+        4. 缓存处理结果
         """
         text = re.sub(r'[^\w\s]', '', text)
-        words = jieba.cut(text)
+        words = jieba.lcut(text)
         return [w for w in words if w.strip()]
-
-    def fit(self, texts):
-        """训练向量化模型"""
-        tfidf_matrix = self.tfidf.fit_transform(texts)
-        self.svd.fit(tfidf_matrix)
-        self.is_fitted = True
-
-    def transform(self, text):
-        """
-        将文本转换为向量表示
-
-        步骤：
-        1. TF-IDF转换
-        2. SVD降维
-        3. 向量归一化
-
-        返回：
-        - 归一化的向量表示
-        """
-        tfidf_vector = self.tfidf.transform([text])
-        vector = self.svd.transform(tfidf_vector)
-        # 向量归一化
-        norm = np.linalg.norm(vector)
-        if norm > 0:
-            vector = vector / norm
-        return vector.flatten()
-
-def retrieve_relevant_chunks(query, chunks, top_k=3):
-    """
-    检索与查询最相关的文本块
-
-    实现流程：
-    1. 初始化向量化器
-    2. 将查询和所有文本块转换为向量
-    3. 计算相似度并排序
-    4. 返回最相关的文本块
-
-    参数：
-    - query: str，用户查询
-    - chunks: list，(chunk_id, text) 元组列表
-    - top_k: int，返回的最相关文本块数量
-
-    返回：
-    - list：最相关的文本块列表
-    """
-    vectorizer = ChineseTextVectorizer()
-    # 将查询和所有文本块一起训练，确保词汇表的完整性
-    all_texts = [query] + [chunk_text for _, chunk_text in chunks]
-    vectorizer.fit(all_texts)
-
-    # 获取查询的向量表示
-    query_embedding = compute_embedding(query, vectorizer)
-
-    # 计算每个文本块与查询的相似度
-    similarities = []
-    for chunk_id, chunk_text in chunks:
-        chunk_embedding = compute_embedding(chunk_text, vectorizer)
-        similarity = compute_similarity(query_embedding, chunk_embedding)
-        similarities.append((similarity, chunk_id, chunk_text))
-
-    # 按相似度排序并返回结果
-    similarities.sort(reverse=True)
-    return [(chunk_id, chunk_text) for _, chunk_id, chunk_text in similarities[:top_k]]
-
-def get_analysis_prompt(query, relevant_chunks):
-    """
-    构建带有检索上下文的分析提示
-
-    提示构建原则：
-    1. 明确角色定位（专业分析师）
-    2. 提供完整的市场数据上下文
-    3. 强调基于数据的客观分析
-    4. 注意风险提示
-
-    参数：
-    - query: str，用户问题
-    - relevant_chunks: list，相关的市场数据文本块
-
-    返回：
-    - str：完整的提示内容
-    """
-    context = "\n".join([chunk for _, chunk in relevant_chunks])
-
-    prompt = f"""作为一位专业的金融分析师，请基于以下相关市场数据回答用户问题。
-
-要求：
-1. 只使用提供的数据进行分析，不要添加其他市场信息
-2. 明确区分数据支持的结论和不确定的推测
-3. 如果数据不足以回答问题，请明确指出
-4. 适当提醒投资风险
-
-相关市场数据：
-{context}
-
-用户问题：{query}
-"""
-    return prompt
-
-def call_llm_api(prompt):
-    """
-    调用大语言模型API
-
-    实现细节：
-    1. 构建API请求
-    2. 设置超时和错误处理
-    3. 解析API响应
-
-    参数：
-    - prompt: str，完整的提示内容
-
-    返回：
-    - str：模型生成的分析结果
-    """
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "model": MODEL,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.7  # 控制输出的随机性
-    }
-
-    try:
-        response = requests.post(
-            f"{API_BASE}/v1/chat/completions",
-            headers=headers,
-            json=data,
-            timeout=30  # 设置超时时间
-        )
-        response.raise_for_status()
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
-    except Exception as e:
-        st.error(f"API 调用出错: {str(e)}")
-        return None
 ```
+
+### 3. 数据处理优化
+
+新增高效的数据缓存和多线程处理机制：
+
+````python
+@file_cache(cache_dir="./securities_cache", expire_days=30)
+def load_security_data(security_type: str) -> pd.DataFrame:
+    """
+    加载证券数据，支持本地文件缓存
+
+    参数：
+        security_type: 证券类型 ('index', 'stock', 'etf')
+
+    返回：
+        pd.DataFrame: 包含证券信息的数据框
+    """
+    try:
+        if security_type == 'index':
+            return adata.stock.info.all_index_code()
+        elif security_type == 'stock':
+            return adata.stock.info.all_code()
+        elif security_type == 'etf':
+            return adata.fund.info.all_etf_exchange_traded_info()
+        else:
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"加载{security_type}数据时出错: {str(e)}")
+        return pd.DataFrame()
+
+def search_securities(query: str) -> List[Dict]:
+    """
+    搜索证券(指数、股票)，支持多线程并行处理
+
+    技术特点:
+    1. 使用LRU缓存优化数据加载
+    2. 多线程并行搜索提升性能
+    3. 关键词预处理提高匹配准确性
+    4. 异常处理确保功能稳定性
+    5. 类型注解增强代码可读性
+
+    Args:
+        query: 搜索关键词(代码或名称)
+
+    Returns:
+        List[Dict]: 搜索结果列表，每个结果包含:
+            - code: 证券代码
+            - name: 证券名称
+            - type: 证券类型
+            - exchange: 交易所
+    """
+    if not query or len(query.strip()) == 0:
+        return []
+
+    # 预处理查询关键词
+    query = preprocess_query(query)
+
+    # 使用线程池并行搜索不同类型的证券
+    security_types = ['index', 'stock', 'etf']
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(search_single_type, query, security_type)
+            for security_type in security_types
+        ]
+
+        # 收集所有结果
+        all_results = []
+        for future in futures:
+            try:
+                results = future.result()
+                all_results.extend(results)
+            except Exception as e:
+                print(f"获取搜索结果时出错: {str(e)}")
+
+    # 按相关度排序结果
+    all_results.sort(key=lambda x: (
+        -int(x['code'].lower() == query),  # 完全匹配代码的优先级最高
+        -int(query in x['code'].lower()),  # 其次是包含代码的
+        -int(query in x['name'].lower()),  # 再次是包含名称的
+        len(x['code'])  # 最后按代码长度排序
+    ))
+
+    return all_results
+
+### 4. 性能优化与缓存机制
+
+系统引入了多层缓存机制和性能优化措施：
+
+```python
+def file_cache(cache_dir="./data_cache", expire_days=1):
+    """
+    文件缓存装饰器，将数据存储到本地文件系统
+
+    技术特点：
+    1. 支持自定义缓存目录和过期时间
+    2. 使用JSON格式存储数据
+    3. 自动处理缓存过期
+    4. 异常处理机制确保稳定性
+
+    参数：
+        cache_dir: 缓存目录路径
+        expire_days: 缓存过期天数，默认1天
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # 创建缓存目录
+            os.makedirs(cache_dir, exist_ok=True)
+
+            # 构建缓存文件路径，使用函数名和参数作为缓存键
+            cache_key = f"{func.__name__}_{str(args)}_{str(kwargs)}"
+            cache_file = os.path.join(cache_dir, f"{cache_key}.json")
+            meta_file = os.path.join(cache_dir, f"{cache_key}_meta.json")
+
+            # 检查缓存是否存在且未过期
+            if os.path.exists(cache_file) and os.path.exists(meta_file):
+                with open(meta_file, 'r') as f:
+                    meta = json.load(f)
+                cache_time = datetime.strptime(meta['timestamp'],
+                                             '%Y-%m-%d %H:%M:%S')
+
+                # 如果缓存未过期，直接从文件加载数据
+                if datetime.now() - cache_time < timedelta(days=expire_days):
+                    try:
+                        with open(cache_file, 'r') as f:
+                            return json.load(f)
+                    except Exception as e:
+                        print(f"读取缓存文件出错: {str(e)}")
+
+            # 如果缓存不存在或已过期，重新获取数据
+            results = func(*args, **kwargs)
+
+            # 保存数据到缓存文件
+            try:
+                # 保存数据
+                with open(cache_file, 'w') as f:
+                    json.dump(results, f, ensure_ascii=False, indent=2)
+
+                # 保存元数据
+                meta = {
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'function': func.__name__,
+                    'args': str(args),
+                    'kwargs': str(kwargs)
+                }
+                with open(meta_file, 'w') as f:
+                    json.dump(meta, f, ensure_ascii=False, indent=2)
+
+            except Exception as e:
+                print(f"写入缓存文件出错: {str(e)}")
+
+            return results
+        return wrapper
+    return decorator
+````
 
 应用的核心技术：
 
-- **自然语言处理**：
-  - jieba 分词：中文文本分词和处理
-  - TF-IDF（TfidfVectorizer）：文本特征提取和权重计算
-  - SVD 降维（TruncatedSVD）：降维获得稠密向量表示
-- **信息检索**：
-  - 余弦相似度：计算文本块相关性
-  - 向量化检索：基于向量相似度的文本匹配
-  - 文本分块策略：结构化文本信息的组织
-- **大语言模型集成**：
-  - 提示工程：构建专业的分析提示
-  - 上下文管理：整合市场数据和查询信息
-  - 结果优化：控制输出的专业性和可靠性
+1. **多层缓存机制**：
 
-关键技术：
+   - LRU 缓存：使用`@lru_cache`装饰器缓存频繁访问的数据
+   - 文件缓存：通过`@file_cache`实现数据持久化存储
+   - 向量化缓存：优化文本处理性能
 
-- TF-IDF + SVD：实现文本向量化，将非结构化文本转换为可计算的向量形式
-- 分词与文本预处理：使用 jieba 进行中文分词，提高文本处理的准确性
-- 余弦相似度匹配：计算查询与文本块的相关度，实现精准的信息检索
-- LLM 问答生成：调用大语言模型生成专业的分析回答
+2. **并行处理优化**：
 
-### 3. 趋势预测与风险分析
+   - 多线程搜索：并行处理不同类型的证券搜索
+   - 异步数据加载：提高响应速度
+   - 线程池管理：优化资源使用
 
-系统基于历史相似 K 线模式，分析未来可能的走势和风险。通过统计学方法，计算不同市场状况下的概率分布和风险指标：
+3. **数据预处理改进**：
+   - 证券代码标准化
+   - 中文分词优化
+   - 异常数据处理
+   - 数据验证加强
 
-```python
-def analyze_future_trends(similar_patterns):
-    """
-    分析历史K线后续走势
-
-    实现思路:
-    1. 统计历史相似形态的后续表现
-    2. 计算涨跌概率分布
-    3. 评估风险收益特征
-    4. 生成预测区间
-    """
-    stats = {
-        'up': {str(i): {'count': 0, 'max': 0, 'min': float('inf')}
-               for i in range(1, 8)},
-        'down': {str(i): {'count': 0, 'max': 0, 'min': float('inf')}
-                 for i in range(1, 8)}
-    }
-
-    # 统计每日涨跌概率和幅度分布
-    for pattern in similar_patterns:
-        future_data = pattern['future_data']
-        for i in range(len(future_data)):
-            current_price = future_data.iloc[i]['close']
-            prev_price = pattern['pattern_data'].iloc[-1]['close']
-            change_rate = ((current_price - prev_price) / prev_price) * 100
-
-            category = 'up' if change_rate >= 0 else 'down'
-            stats[category][str(i+1)]['count'] += 1
-            stats[category][str(i+1)]['values'].append(abs(change_rate))
-```
-
-关键技术：
-
-- 历史模式匹配：基于相似 K 线形态的统计分析，找出历史规律
-- 概率分布计算：评估涨跌概率和幅度分布，量化市场预期
-- 风险度量指标：计算标准差、最大回撤等风险指标，评估投资风险
-- 持仓期分析：评估不同持有期的收益风险特征，优化投资策略
-
-## 技术栈
+## 技术栈更新
 
 ### 核心框架与库
 
-- Streamlit：Web 应用框架，提供交互式界面
-- Plotly：交互式数据可视化，实现专业的 K 线图表
-- scikit-learn：机器学习算件，支持向量化和相似度计算
-- pandas：数据处理与分析，处理时间序列数据
-- numpy：科学计算，提供高效的数组运算
-- jieba：中文分词，支持自然语言处理
+- Streamlit：Web 应用框架
+- Plotly：交互式数据可视化
+- scikit-learn：机器学习算法库
+- pandas & numpy：数据处理与科学计算
+- jieba：中文分词处理
+- ThreadPoolExecutor：多线程处理
+- LRU Cache：内存缓存优化
 
-### 数据处理与分析
+### 性能优化
 
-- TF-IDF：文本特征提取，将文本转换为特征向量
-- SVD：降维与特征压缩，提高向量表示的效率
-- 欧几里得距离：序列相似度计算，评估价格走势的相似程度
-- 皮尔逊相关系数：走势相关性分析，衡量价格变动的一致性
+1. **缓存机制**：
 
-### AI 与机器学习
+   - 内存缓存：`@lru_cache`装饰器
+   - 文件缓存：`@file_cache`装饰器
+   - 缓存过期管理
+   - 异常处理机制
 
-- RAG 检索增强生成：智能问答架构，提供基于数据的专业分析
-- 向量化检索：相似文本匹配，实现高效的信息检索
-- 大语言模型：市场分析生成，提供专业的投资建议
+2. **并行处理**：
+
+   - 多线程搜索
+   - 异步数据加载
+   - 资源池管理
+   - 任务调度优化
+
+3. **数据处理**：
+   - 批量数据处理
+   - 向量化运算
+   - 内存优化
+   - 错误处理完善
+
+### AI 模型优化
+
+1. **RAG 技术增强**：
+
+   - 改进文本块构建
+   - 优化向量检索
+   - 增强相似度计算
+   - 完善提示工程
+
+2. **NLP 处理优化**：
+   - 分词性能提升
+   - 向量化效率优化
+   - 相似度算法改进
+   - 结果排序优化
 
 ## 系统特点
 
-1. **数据驱动决策**：基于大量历史数据的客观分析，避免主观判断带来的偏差
-2. **多维度分析**：结合技术分析和 AI 智能分析，全面评估市场状况
-3. **实时交互**：支持灵活的数据查询和分析，快速响应市场变化
-4. **风险提示**：完整的风险分析和警示机制，帮助投资者认识潜在风险
+1. **高性能数据处理**：
+   - 多级缓存机制
+   - 多线程并行处理
+   - 异步数据加载
+   - 性能监控优化
+2. **智能分析增强**：
+
+   - 改进相似度算法
+   - 优化文本检索精度
+   - 完善风险分析模型
+   - 增强预测准确性
+
+3. **用户体验优化**：
+   - 响应速度提升
+   - 分析结果更专业
+   - 展示效果更直观
+   - 操作更加便捷
 
 ## 注意事项
 
