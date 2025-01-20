@@ -27,7 +27,7 @@
 - 本地运行速度快得多 🚀
 
 [Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
-![系统演示 GIF](https://github.com/user-attachments/assets/230df622-bc67-4407-94e6-ee16a0c8929c)
+![系统演示 GIF](https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif)
 
 ## 🙏 致谢
 
