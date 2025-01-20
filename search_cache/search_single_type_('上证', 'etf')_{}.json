@@ -1,0 +1,128 @@
+[
+  {
+    "code": "510200",
+    "name": "上证券商ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "563090",
+    "name": "上证50ETF增强",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "530000",
+    "name": "上证50ETF天弘",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510850",
+    "name": "工银上证50ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510190",
+    "name": "上证50ETF指数基金",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510040",
+    "name": "上证180ETF指数",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510290",
+    "name": "上证380ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "530680",
+    "name": "上证180指数ETF基金",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510600",
+    "name": "申万上证50ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510100",
+    "name": "上证50ETF易方达",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510980",
+    "name": "上证综合ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510050",
+    "name": "上证50ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510710",
+    "name": "上证50ETF博时",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510950",
+    "name": "上证50ETF指数",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510680",
+    "name": "上证50ETF基金",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "530180",
+    "name": "上证180ETF易方达",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510180",
+    "name": "上证180ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "530300",
+    "name": "上证180指数ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "530050",
+    "name": "上证50ETF东财",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510760",
+    "name": "上证综指ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510210",
+    "name": "上证指数ETF",
+    "type": "etf",
+    "exchange": ""
+  }
+]

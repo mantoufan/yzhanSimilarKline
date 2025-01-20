@@ -54,14 +54,14 @@ def file_cache(cache_dir="./data_cache", expire_days=1):
         expire_days: 缓存过期天数，默认1天
     """
     def decorator(func):
-        @wraps(func)
-        def wrapper(security_type: str) -> pd.DataFrame:
+        def wrapper(*args, **kwargs):
             # 创建缓存目录
             os.makedirs(cache_dir, exist_ok=True)
             
-            # 构建缓存文件路径
-            cache_file = os.path.join(cache_dir, f"{security_type}_data.parquet")
-            meta_file = os.path.join(cache_dir, f"{security_type}_meta.json")
+            # 构建缓存文件路径，使用函数名和参数作为缓存键
+            cache_key = f"{func.__name__}_{str(args)}_{str(kwargs)}"
+            cache_file = os.path.join(cache_dir, f"{cache_key}.json")
+            meta_file = os.path.join(cache_dir, f"{cache_key}_meta.json")
             
             # 检查缓存是否存在且未过期
             if os.path.exists(cache_file) and os.path.exists(meta_file):
@@ -73,32 +73,34 @@ def file_cache(cache_dir="./data_cache", expire_days=1):
                 # 如果缓存未过期，直接从文件加载数据
                 if datetime.now() - cache_time < timedelta(days=expire_days):
                     try:
-                        return pd.read_parquet(cache_file)
+                        with open(cache_file, 'r') as f:
+                            return json.load(f)
                     except Exception as e:
                         print(f"读取缓存文件出错: {str(e)}")
             
             # 如果缓存不存在或已过期，重新获取数据
-            df = func(security_type)
+            results = func(*args, **kwargs)
             
             # 保存数据到缓存文件
-            if not df.empty:
-                try:
-                    # 保存数据
-                    df.to_parquet(cache_file, index=True)
+            try:
+                # 保存数据
+                with open(cache_file, 'w') as f:
+                    json.dump(results, f, ensure_ascii=False, indent=2)
+                
+                # 保存元数据
+                meta = {
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'function': func.__name__,
+                    'args': str(args),
+                    'kwargs': str(kwargs)
+                }
+                with open(meta_file, 'w') as f:
+                    json.dump(meta, f, ensure_ascii=False, indent=2)
                     
-                    # 保存元数据
-                    meta = {
-                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'rows': len(df),
-                        'columns': list(df.columns)
-                    }
-                    with open(meta_file, 'w') as f:
-                        json.dump(meta, f, ensure_ascii=False, indent=2)
-                        
-                except Exception as e:
-                    print(f"写入缓存文件出错: {str(e)}")
+            except Exception as e:
+                print(f"写入缓存文件出错: {str(e)}")
             
-            return df
+            return results
         return wrapper
     return decorator
 
@@ -127,34 +129,15 @@ def load_security_data(security_type: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 def preprocess_query(query: str) -> str:
-    """
-    预处理搜索关键词
-    
-    Args:
-        query: 原始搜索关键词
-    
-    Returns:
-        str: 处理后的搜索关键词
-    """
-    # 移除特殊字符
+    """预处理搜索关键词"""
     query = re.sub(r'[^\w\s]', '', query)
-    # 转换为小写
     query = query.lower()
-    # 移除多余空格
     query = ' '.join(query.split())
     return query
 
+@file_cache(cache_dir="./search_cache", expire_days=30)
 def search_single_type(query: str, security_type: str) -> List[Dict]:
-    """
-    在单个证券类型中搜索
-    
-    Args:
-        query: 搜索关键词
-        security_type: 证券类型
-    
-    Returns:
-        List[Dict]: 搜索结果列表
-    """
+    """在单个证券类型中搜索（带文件缓存）"""
     results = []
     df = load_security_data(security_type)
     
@@ -192,13 +175,13 @@ def search_single_type(query: str, security_type: str) -> List[Dict]:
     
     return results
 
-@lru_cache(maxsize=2056)
+@file_cache(cache_dir="./search_cache", expire_days=1)
 def search_securities(query: str) -> List[Dict]:
     """
-    搜索证券(指数、股票)
+    搜索证券(指数、股票、ETF)，支持文件缓存
     
     技术特点:
-    1. 使用 LRU 缓存优化数据加载
+    1. 使用文件缓存优化搜索结果
     2. 多线程并行搜索提升性能
     3. 关键词预处理提高匹配准确性
     4. 异常处理确保功能稳定性
@@ -239,13 +222,9 @@ def search_securities(query: str) -> List[Dict]:
                 
     # 按相关度排序结果
     all_results.sort(key=lambda x: (
-        # 完全匹配代码的优先级最高
         -int(x['code'].lower() == query),
-        # 其次是包含代码的
         -int(query in x['code'].lower()),
-        # 再次是包含名称的
         -int(query in x['name'].lower()),
-        # 最后按代码长度排序
         len(x['code'])
     ))
     

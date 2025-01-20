@@ -1,0 +1,206 @@
+[
+  {
+    "code": "000037",
+    "name": "上证医药",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000131",
+    "name": "上证高新",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000035",
+    "name": "上证可选",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000133",
+    "name": "上证150",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000049",
+    "name": "上证民企",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000039",
+    "name": "上证信息",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000009",
+    "name": "上证380",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000055",
+    "name": "上证地企",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000132",
+    "name": "上证100",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000016",
+    "name": "上证50",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000062",
+    "name": "上证沪企",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000065",
+    "name": "上证龙头",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000036",
+    "name": "上证消费",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000090",
+    "name": "上证流通",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000067",
+    "name": "上证新兴",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000010",
+    "name": "上证180",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000047",
+    "name": "上证全指",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000045",
+    "name": "上证小盘",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000038",
+    "name": "上证金融",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000046",
+    "name": "上证中小",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000001",
+    "name": "上证指数",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000044",
+    "name": "上证中盘",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000100",
+    "name": "上证F500",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000054",
+    "name": "上证海外",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000063",
+    "name": "上证周期",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000056",
+    "name": "上证国企",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000034",
+    "name": "上证工业",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000041",
+    "name": "上证公用",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000040",
+    "name": "上证电信",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000033",
+    "name": "上证材料",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000042",
+    "name": "上证央企",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000066",
+    "name": "上证商品",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000068",
+    "name": "上证资源",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "000032",
+    "name": "上证能源",
+    "type": "index",
+    "exchange": ""
+  }
+]

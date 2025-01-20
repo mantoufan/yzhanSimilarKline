@@ -1,0 +1,110 @@
+[
+  {
+    "code": "000001",
+    "name": "平安银行",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000592",
+    "name": "平潭发展",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000780",
+    "name": "ST平能",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000998",
+    "name": "隆平高科",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "001359",
+    "name": "平安电工",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002017",
+    "name": "东信和平",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002114",
+    "name": "罗平锌电",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300074",
+    "name": "华平股份",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300571",
+    "name": "平治信息",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300907",
+    "name": "康平科技",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "301017",
+    "name": "漱玉平民",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "600312",
+    "name": "平高电气",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "601099",
+    "name": "太平洋",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "601318",
+    "name": "中国平安",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "601666",
+    "name": "平煤股份",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603843",
+    "name": "正平股份",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603877",
+    "name": "太平鸟",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688393",
+    "name": "安必平",
+    "type": "stock",
+    "exchange": "SH"
+  }
+]

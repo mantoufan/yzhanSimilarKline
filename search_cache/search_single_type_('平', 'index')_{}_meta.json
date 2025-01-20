@@ -1,0 +1,6 @@
+{
+  "timestamp": "2025-01-20 14:19:59",
+  "function": "search_single_type",
+  "args": "('平', 'index')",
+  "kwargs": "{}"
+}

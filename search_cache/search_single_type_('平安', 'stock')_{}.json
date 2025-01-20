@@ -1,0 +1,20 @@
+[
+  {
+    "code": "000001",
+    "name": "平安银行",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "001359",
+    "name": "平安电工",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "601318",
+    "name": "中国平安",
+    "type": "stock",
+    "exchange": "SH"
+  }
+]

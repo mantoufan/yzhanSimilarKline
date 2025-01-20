@@ -1,0 +1,50 @@
+[
+  {
+    "code": "159793",
+    "name": "线上消费ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "159964",
+    "name": "创业板ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510590",
+    "name": "中证500ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510390",
+    "name": "沪深300ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "516180",
+    "name": "光伏ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "512360",
+    "name": "平安MSCI国际ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "516890",
+    "name": "新材料ETF平安",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "512390",
+    "name": "平安MSCI低波ETF",
+    "type": "etf",
+    "exchange": ""
+  }
+]
