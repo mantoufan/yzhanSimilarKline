@@ -17,7 +17,7 @@
 
 ## 🔗 源码地址
 
-[GitHub 仓库](https://github.com/mantoufan/yzhanSimilarKline)
+[GitHub 仓库](https://github.com/mantoufan/yzhanSimilarKline)  
 
 ## 🎥 Demo
 
@@ -32,6 +32,14 @@
 ## 🙏 致谢
 
 特别感谢阮光册教授在商业智能技术课程中对相关技术和案例的讲解，受益匪浅。教授的指导帮助我更深入地理解了商业智能技术的实际应用，为本项目的开发提供了宝贵的理论依据和思路方向。👨‍🏫
+
+## 📷 截图  
+![image](https://github.com/user-attachments/assets/28283905-e235-4c86-85a8-ecbc865efe7a)  
+![image](https://github.com/user-attachments/assets/0e7c1649-389e-4076-a4cb-0fb391ec1ca6)  
+![image](https://github.com/user-attachments/assets/e8aa9c41-116d-4299-804d-c7ee03f7f40d)  
+![image](https://github.com/user-attachments/assets/3e66f535-6c21-455f-bdee-2996ea706839)  
+![image](https://github.com/user-attachments/assets/a2614301-4fbc-4214-b13a-3c5ae18b9618)  
+![image](https://github.com/user-attachments/assets/17ad1ee7-4da5-4241-82ff-06a12823dbad)  
 
 ## 🚀 快速开始
 
