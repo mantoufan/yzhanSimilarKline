@@ -44,8 +44,8 @@
 
 在线使用：[阿里云节点（推荐，高速）](https://a.os120.com/)　[谷歌云节点（慢）](https://skline.streamlit.app/)  
 视频演示：[点击播放](https://drfs.ctcontents.com/file/3312/1449317425/0a8f12/yun/business-ai-video-v2.mp4)  
-动画演示（[不动点这里](https://github.com/user-attachments/assets/ea639765-9e44-486a-a753-4841fdf1bc2d)）
-![Screenity video - Jan 20, 2025](https://github.com/user-attachments/assets/ea639765-9e44-486a-a753-4841fdf1bc2d)
+动画演示（[不动点这里](https://github.com/user-attachments/assets/50e9544a-aafa-4a3b-ad3f-8b71cc1cd79e)）
+![business-ai-video-v2](https://github.com/user-attachments/assets/50e9544a-aafa-4a3b-ad3f-8b71cc1cd79e)
 
 ## 🙏 致谢
 
