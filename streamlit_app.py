@@ -824,7 +824,7 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
     )
     
     if user_question:
-        with st.spinner('正在思考答案...'):
+        with st.spinner('正在根据相关数据块思考答案...'):
             # 检索相关文本块
             relevant_chunks = retrieve_relevant_chunks(user_question, chunks, top_k=10)
             
