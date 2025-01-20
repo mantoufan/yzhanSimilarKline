@@ -5,10 +5,9 @@
 这是一个基于人工智能和大数据技术的 A 股市场分析系统，集成了技术分析和智能问答功能。系统能够自动识别相似 K 线形态，预测可能的价格走势，分析不同持仓期的风险收益，并提供基于实际市场数据的智能问答服务。系统采用先进的机器学习算法和自然语言处理技术，为投资者提供客观、全面的市场分析支持。系统整合了多种技术指标和分析方法，通过数据驱动的方式帮助投资者做出更理性的投资决策。
 
 ## Demo
-
-https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4
-
-[Demo Link](https://skline.streamlit.app/)
+[Demo Link](https://skline.streamlit.app/)  
+https://github.com/user-attachments/assets/076edf71-105e-49be-9c93-51e168bedd4f  
+[Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
 
 ## 致谢
 
