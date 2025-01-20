@@ -851,10 +851,9 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
         <li>这是一个支持多轮对话的智能助手，您可以围绕一个话题深入交流</li>
         <li>助手会记住对话内容，您可以基于之前的回答继续提问</li>
         <li>随时可以要求助手解释某个观点，或者提供更详细的分析</li>
-        <li>如果分析不够清晰，请告诉助手“具体说明一下吗？”/li>
+        <li>如果分析不够清晰，请告诉助手“具体说明一下吗？”</li>
     </ul>
-</div>
-""", unsafe_allow_html=True)
+</div>""", unsafe_allow_html=True)
 
     # 创建文本块用于检索
     chunks = create_text_chunks(security, current_df, similar_patterns, holding_stats)
@@ -863,6 +862,10 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
     # 初始化会话状态
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
+    
+    # 初始化输入框计数器
+    if 'input_key_counter' not in st.session_state:
+        st.session_state.input_key_counter = 0
     
     # 显示历史对话
     for i, (user_msg, assistant_msg) in enumerate(st.session_state.chat_history):
@@ -882,11 +885,20 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                 {assistant_msg}
             </div>
             """, unsafe_allow_html=True)
+
+            # 在最后一条对话后显示免责声明
+            if user_msg == st.session_state.chat_history[-1][0]:
+                st.markdown("""
+            <div class="statement">
+            ⚠️ <strong>免责声明：</strong>以上分析仅供参考，不构成投资建议。投资有风险，入市需谨慎。
+            </div>
+            """, unsafe_allow_html=True)
     
     # 用户输入新问题
+    input_key = f'rag_question_{base_key}'
     user_question = st.text_input(
         f"请输入您关于 {security['name']}（{security['code']}）的问题：", 
-        key=f'rag_question_{base_key}',
+        key=f"{input_key}_{st.session_state.input_key_counter}",
         help="您可以：\n1. 询问基本信息、最新行情、历史表现、相似K线分析等内容\n2. 基于助手的回答继续追问，比如'为什么会这样预测？'\n3. 寻求更详细的解释，如'能具体解释一下这个原因吗？'\n4. 要求展开某个观点，如'刚才说到xxx，能详细分析一下吗？'"
     )
     
@@ -919,35 +931,11 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                 # 保存新的对话记录
                 st.session_state.chat_history.append((user_question, response))
                 
-                # 显示最新的回复
-                st.markdown("""
-                <div style='background-color: #f0f2f6; padding: 10px; border-radius: 8px; margin-bottom: 10px;'>
-                    <span style='color: #666;'>👤 您：</span><br>
-                    {user_question}
-                </div>
-                """.format(user_question=user_question), unsafe_allow_html=True)
-                
-                st.markdown("""
-                <div style='background-color: #e8f4f9; padding: 10px; border-radius: 8px; margin-bottom: 20px;'>
-                    <span style='color: #666;'>🤖 助手：</span><br>
-                    {response}
-                </div>
-                """.format(response=response), unsafe_allow_html=True)
-                
-                # 添加免责声明
-                st.markdown("""
-                <div class="statement">
-                ⚠️ <strong>免责声明：</strong>以上分析仅供参考，不构成投资建议。投资有风险，入市需谨慎。
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # 清空输入框
-                st.text_input(
-                    f"请输入您关于 {security['name']}（{security['code']}）的问题或继续提问：",
-                    value="",
-                    key=f'rag_question_{base_key}_new',
-                    help="您可以询问关于该证券的基本信息、最新行情、历史表现、相似K线分析等问题。您也可以基于之前的对话继续提问。"
-                )
+                # 增加计数器以更新输入框的key
+                st.session_state.input_key_counter += 1
+
+                # 刷新页面
+                st.rerun()
             else:
                 st.error("抱歉，获取回答失败，请稍后重试。")
 
