@@ -1,0 +1,14 @@
+[
+  {
+    "code": "000001",
+    "name": "上证指数",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "510210",
+    "name": "上证指数ETF",
+    "type": "etf",
+    "exchange": ""
+  }
+]

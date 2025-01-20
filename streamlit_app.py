@@ -137,7 +137,16 @@ def preprocess_query(query: str) -> str:
 
 @file_cache(cache_dir="./search_cache", expire_days=30)
 def search_single_type(query: str, security_type: str) -> List[Dict]:
-    """在单个证券类型中搜索（带文件缓存）"""
+    """
+    在单个证券类型中搜索
+    
+    Args:
+        query: 搜索关键词
+        security_type: 证券类型
+    
+    Returns:
+        List[Dict]: 搜索结果列表
+    """
     results = []
     df = load_security_data(security_type)
     
@@ -175,13 +184,13 @@ def search_single_type(query: str, security_type: str) -> List[Dict]:
     
     return results
 
-@file_cache(cache_dir="./search_cache", expire_days=1)
+@lru_cache(maxsize=2056)
 def search_securities(query: str) -> List[Dict]:
     """
-    搜索证券(指数、股票、ETF)，支持文件缓存
+    搜索证券(指数、股票)
     
     技术特点:
-    1. 使用文件缓存优化搜索结果
+    1. 使用 LRU 缓存优化数据加载
     2. 多线程并行搜索提升性能
     3. 关键词预处理提高匹配准确性
     4. 异常处理确保功能稳定性
@@ -222,9 +231,13 @@ def search_securities(query: str) -> List[Dict]:
                 
     # 按相关度排序结果
     all_results.sort(key=lambda x: (
+        # 完全匹配代码的优先级最高
         -int(x['code'].lower() == query),
+        # 其次是包含代码的
         -int(query in x['code'].lower()),
+        # 再次是包含名称的
         -int(query in x['name'].lower()),
+        # 最后按代码长度排序
         len(x['code'])
     ))
     
@@ -306,30 +319,51 @@ def find_similar_patterns(df, window_size=30, top_n=3):
     if df is None or len(df) < window_size * 2:
         return []
     
-    recent_window = df.tail(window_size)['close']
+    recent_window = df.tail(window_size)['close'].values
+    recent_window_norm = (recent_window - recent_window[0]) / recent_window[0] * 100
+    
     similar_patterns = []
     max_i = len(df) - (window_size * 2 + 7)
     
-    for i in range(max_i):
-        historical_window = df.iloc[i:i+window_size]['close']
-        future_data = df.iloc[i+window_size:i+window_size+7]
-        
-        if len(future_data) < 7:
-            continue
-            
-        similarity = calculate_similarity(recent_window, historical_window)
-        
-        if similarity > 0:
-            similar_patterns.append({
-                'start_date': df.iloc[i]['trade_date'],
-                'end_date': df.iloc[i+window_size-1]['trade_date'],
-                'pattern_data': df.iloc[i:i+window_size],
-                'future_data': future_data,
-                'similarity': similarity
-            })
+    # 批量计算所有窗口的标准化数据
+    all_windows = np.array([
+        df['close'].values[i:i+window_size]
+        for i in range(max_i)
+    ])
+    all_windows_norm = np.array([
+        (window - window[0]) / window[0] * 100
+        for window in all_windows
+    ])
     
-    similar_patterns.sort(key=lambda x: x['similarity'], reverse=True)
-    return similar_patterns[:top_n]
+    # 批量计算相似度
+    correlations = np.array([
+        pearsonr(recent_window_norm, window_norm)[0]
+        for window_norm in all_windows_norm
+    ])
+    
+    # 批量计算欧氏距离
+    distances = np.array([
+        euclidean(recent_window_norm, window_norm)
+        for window_norm in all_windows_norm
+    ])
+    normalized_distances = 1 / (1 + distances/window_size)
+    
+    # 计算综合相似度
+    similarities = correlations * 0.7 + normalized_distances * 0.3
+    
+    # 获取最相似的模式
+    top_indices = np.argsort(similarities)[-top_n:][::-1]
+    
+    for i in top_indices:
+        similar_patterns.append({
+            'start_date': df.iloc[i]['trade_date'],
+            'end_date': df.iloc[i+window_size-1]['trade_date'],
+            'pattern_data': df.iloc[i:i+window_size].copy(),
+            'future_data': df.iloc[i+window_size:i+window_size+7].copy(),
+            'similarity': similarities[i]
+        })
+    
+    return similar_patterns
 
 def analyze_future_trends(similar_patterns):
     """
@@ -456,17 +490,22 @@ class ChineseTextVectorizer:
         self.tfidf = TfidfVectorizer(
             tokenizer=self._tokenize,
             token_pattern=None,
-            max_features=5000
+            max_features=2000  # 减少特征数量
         )
         self.svd = TruncatedSVD(
             n_components=vector_size,
-            random_state=42
+            random_state=42,
+            algorithm='randomized'  # 使用随机算法加速
         )
         self.is_fitted = False
+
+         # 预加载结巴词典
+        jieba.initialize()
     
+    @lru_cache(maxsize=1000)  # 缓存分词结果
     def _tokenize(self, text):
         text = re.sub(r'[^\w\s]', '', text)
-        words = jieba.cut(text)
+        words = jieba.lcut(text)
         return [w for w in words if w.strip()]
     
     def fit(self, texts):
@@ -540,21 +579,25 @@ def compute_similarity(query_embedding, chunk_embedding):
 
 def retrieve_relevant_chunks(query, chunks, top_k=3):
     """检索与查询最相关的文本块"""
-    vectorizer = ChineseTextVectorizer()
+    vectorizer = ChineseTextVectorizer(vector_size=50)  # 减少向量维度
+    
+    # 预处理所有文本
     all_texts = [query] + [chunk_text for _, chunk_text in chunks]
     vectorizer.fit(all_texts)
     
+    # 批量计算向量
     query_embedding = compute_embedding(query, vectorizer)
+    chunk_embeddings = np.vstack([
+        compute_embedding(chunk_text, vectorizer)
+        for _, chunk_text in chunks
+    ])
     
-    similarities = []
-    for chunk_id, chunk_text in chunks:
-        chunk_embedding = compute_embedding(chunk_text, vectorizer)
-        similarity = compute_similarity(query_embedding, chunk_embedding)
-        similarities.append((similarity, chunk_id, chunk_text))
+    # 批量计算相似度
+    similarities = np.dot(chunk_embeddings, query_embedding)
     
-    # 按相似度排序并返回前 top_k 个
-    similarities.sort(reverse=True)
-    return [(chunk_id, chunk_text) for _, chunk_id, chunk_text in similarities[:top_k]]
+    # 获取top_k个最相似的chunk
+    top_indices = np.argsort(similarities)[-top_k:][::-1]
+    return [chunks[i] for i in top_indices]
 
 def create_text_chunks(security, current_df, similar_patterns, holding_stats):
     """
