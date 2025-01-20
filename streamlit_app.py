@@ -880,6 +880,7 @@ def main():
         <p style='color: #666; font-size: 0.9em; margin-top: 0.5em;'>
             👨‍🎓 学生：吴小宇 
             <span style='margin-left: 1em;'>🔢 学号：71265700016</span>
+            <span style='margin-left: 1em;'>⭐️ <a href='https://github.com/mantoufan/yzhanSimilarKline' target='_blank'>项目源码和说明文档</a></span>
         </p>
     </div>
     """, unsafe_allow_html=True)

@@ -21,12 +21,8 @@
 
 ## 🎥 Demo
 
-> 主机限速，您可以搜索"平安""上证指数"快速查询缓存数据。
-
-- 其它关键词需要重新请求，大概需要等待 5 分钟甚至更长才有结果。⌛
-- 本地运行速度快得多 🚀
-
-[Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
+在线使用：[阿里云节点（推荐，高速）](https://skline.streamlit.app/) [谷歌云节点（慢）](https://skline.streamlit.app/)  
+视频演示：[点击播放](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
 动画演示：  
 ![https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif](https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif)
 
