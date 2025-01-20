@@ -43,6 +43,7 @@ API_BASE = get_config('API_BASE', "https://api.openai.com")
 MODEL = get_config('MODEL', "gpt-4o-mini")
 PROXY_URL = get_config('PROXY_URL')
 
+@lru_cache(maxsize=3) # 最多缓存3种证券类型的数据
 def load_security_data(security_type: str) -> pd.DataFrame:
     """
     加载并缓存证券数据
