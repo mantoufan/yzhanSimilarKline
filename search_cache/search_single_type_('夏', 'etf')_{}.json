@@ -1,0 +1,68 @@
+[
+  {
+    "code": "159957",
+    "name": "创业板100ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "562660",
+    "name": "中证2000ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "159563",
+    "name": "创业板综ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "159573",
+    "name": "创业板200ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "516100",
+    "name": "金融科技ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "512500",
+    "name": "中证500ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "510330",
+    "name": "沪深300ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "588800",
+    "name": "科创100ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "511650",
+    "name": "华夏快线ETF",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "518850",
+    "name": "黄金ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  },
+  {
+    "code": "515020",
+    "name": "银行ETF华夏",
+    "type": "etf",
+    "exchange": ""
+  }
+]

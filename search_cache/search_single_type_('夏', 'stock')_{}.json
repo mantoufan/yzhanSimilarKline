@@ -1,0 +1,44 @@
+[
+  {
+    "code": "000662",
+    "name": "天夏退",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "001306",
+    "name": "夏厦精密",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002928",
+    "name": "华夏航空",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "600015",
+    "name": "华夏银行",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "600340",
+    "name": "华夏幸福",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "600449",
+    "name": "宁夏建材",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603157",
+    "name": "退市拉夏",
+    "type": "stock",
+    "exchange": "SH"
+  }
+]
