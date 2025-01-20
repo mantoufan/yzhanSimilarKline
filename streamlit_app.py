@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Optional
+from functools import wraps
+import json
 
 # 加载 .env 文件
 load_dotenv()
@@ -43,15 +45,72 @@ API_BASE = get_config('API_BASE', "https://api.openai.com")
 MODEL = get_config('MODEL', "gpt-4o-mini")
 PROXY_URL = get_config('PROXY_URL')
 
-@lru_cache(maxsize=3) # 最多缓存3种证券类型的数据
+def file_cache(cache_dir="./data_cache", expire_days=1):
+    """
+    文件缓存装饰器，将数据存储到本地文件系统
+    
+    参数：
+        cache_dir: 缓存目录路径
+        expire_days: 缓存过期天数，默认1天
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(security_type: str) -> pd.DataFrame:
+            # 创建缓存目录
+            os.makedirs(cache_dir, exist_ok=True)
+            
+            # 构建缓存文件路径
+            cache_file = os.path.join(cache_dir, f"{security_type}_data.parquet")
+            meta_file = os.path.join(cache_dir, f"{security_type}_meta.json")
+            
+            # 检查缓存是否存在且未过期
+            if os.path.exists(cache_file) and os.path.exists(meta_file):
+                with open(meta_file, 'r') as f:
+                    meta = json.load(f)
+                cache_time = datetime.strptime(meta['timestamp'], 
+                                             '%Y-%m-%d %H:%M:%S')
+                
+                # 如果缓存未过期，直接从文件加载数据
+                if datetime.now() - cache_time < timedelta(days=expire_days):
+                    try:
+                        return pd.read_parquet(cache_file)
+                    except Exception as e:
+                        print(f"读取缓存文件出错: {str(e)}")
+            
+            # 如果缓存不存在或已过期，重新获取数据
+            df = func(security_type)
+            
+            # 保存数据到缓存文件
+            if not df.empty:
+                try:
+                    # 保存数据
+                    df.to_parquet(cache_file, index=True)
+                    
+                    # 保存元数据
+                    meta = {
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'rows': len(df),
+                        'columns': list(df.columns)
+                    }
+                    with open(meta_file, 'w') as f:
+                        json.dump(meta, f, ensure_ascii=False, indent=2)
+                        
+                except Exception as e:
+                    print(f"写入缓存文件出错: {str(e)}")
+            
+            return df
+        return wrapper
+    return decorator
+
+@file_cache(cache_dir="./securities_cache", expire_days=30)
 def load_security_data(security_type: str) -> pd.DataFrame:
     """
-    加载并缓存证券数据
+    加载证券数据，支持本地文件缓存
     
-    Args:
+    参数：
         security_type: 证券类型 ('index', 'stock', 'etf')
     
-    Returns:
+    返回：
         pd.DataFrame: 包含证券信息的数据框
     """
     try:
@@ -162,7 +221,7 @@ def search_securities(query: str) -> List[Dict]:
     query = preprocess_query(query)
     
     # 使用线程池并行搜索不同类型的证券
-    security_types = ['index', 'stock']
+    security_types = ['index', 'stock', 'etf']
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = [
             executor.submit(search_single_type, query, security_type)
@@ -831,7 +890,7 @@ def main():
     """, unsafe_allow_html=True)
     
     # 搜索证券
-    query = st.text_input('输入指数/股票的代码或名称进行搜索', '', key='security_search')
+    query = st.text_input('输入指数/股票/基金 ETF 的代码或名称进行搜索', '', key='security_search')
     
     if query:
         results = search_securities(query)
