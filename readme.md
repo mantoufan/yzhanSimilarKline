@@ -433,7 +433,149 @@ def analyze_future_trends(similar_patterns):
 
 ### 3. 智能问答系统
 
-系统采用 RAG（检索增强生成）技术架构，结合向量化检索和大语言模型：
+系统采用 RAG（检索增强生成）技术架构，结合向量化检索和大语言模型来提供智能问答服务。整个问答过程分为三个核心步骤：首先将市场数据转换为结构化的文本块，然后通过向量化检索找到相关内容，最后基于检索结果构建分析提示进行问答。
+
+#### 3.1 市场数据结构化处理
+
+系统首先通过 `create_text_chunks` 函数将各类市场数据转换为结构化的文本块：
+
+```python
+def create_text_chunks(security, current_df, similar_patterns, holding_stats):
+    """
+    将市场数据分成多个独立的文本块，便于后续检索
+
+    技术要点：
+    1. RAG检索增强生成：构建结构化的文本块供检索
+    2. 向量化(TF-IDF + SVD)：将文本转化为向量表示
+    3. 余弦相似度匹配：计算查询与文本块的相似度
+    """
+    chunks = []
+
+    # 第一部分：证券基本信息
+    basic_info = f"""
+            证券基本信息：
+            名称：{security['name']}
+            代码：{security['code']}
+            类型：{security['type']}
+            交易所：{security['exchange'] if security['exchange'] else '未知'}
+    """
+    chunks.append(("basic_info", basic_info))
+
+    if current_df is not None and not current_df.empty:
+        # 第二部分：最新行情数据
+        latest_data = current_df.iloc[-1]
+        latest_market = f"""
+            最新市场行情（{latest_data['trade_date'].strftime('%Y-%m-%d')}）：
+            收盘价：{latest_data['close']:.2f}
+            开盘价：{latest_data['open']:.2f}
+            最高价：{latest_data['high']:.2f}
+            最低价：{latest_data['low']:.2f}
+            成交量：{latest_data.get('volume', '未知')}
+        """
+        chunks.append(("latest_market", latest_market))
+
+        # 构建其他文本块...（完整代码见上文）
+
+    return chunks
+```
+
+这个函数将市场数据分成六个主要部分：证券基本信息、最新行情数据、近期走势分析、历史表现分析、相似 K 线分析和持仓分析。每个部分都被设计成独立的、自包含的分析单元，包含完整的上下文信息。这种设计能够提高检索精度，优化响应速度，并提供更有针对性的回答。
+
+#### 3.2 向量化检索匹配
+
+在获得结构化的文本块后，系统需要找出与用户问题最相关的内容。这个过程通过向量化检索来实现：
+
+```python
+def retrieve_relevant_chunks(query, chunks, top_k=3):
+    """
+    检索与查询最相关的文本块
+
+    参数：
+        query: 用户的问题
+        chunks: 所有可用的文本块
+        top_k: 返回最相关的k个文本块
+
+    技术要点：
+        1. 使用TF-IDF进行文本向量化
+        2. 通过SVD进行降维处理
+        3. 计算余弦相似度进行匹配
+    """
+    vectorizer = ChineseTextVectorizer(vector_size=50)  # 降维至50维
+
+    # 预处理所有文本
+    all_texts = [query] + [chunk_text for _, chunk_text in chunks]
+    vectorizer.fit(all_texts)
+
+    # 批量计算向量
+    query_embedding = compute_embedding(query, vectorizer)
+    chunk_embeddings = np.vstack([
+        compute_embedding(chunk_text, vectorizer)
+        for _, chunk_text in chunks
+    ])
+
+    # 批量计算相似度
+    similarities = np.dot(chunk_embeddings, query_embedding)
+
+    # 获取top_k个最相似的chunk
+    top_indices = np.argsort(similarities)[-top_k:][::-1]
+    return [chunks[i] for i in top_indices]
+```
+
+文本向量化过程由 `ChineseTextVectorizer` 类实现：
+
+```python
+class ChineseTextVectorizer:
+    """中文文本向量化处理器"""
+
+    def __init__(self, vector_size=100):
+        self.vector_size = vector_size
+        # 配置TF-IDF向量化器
+        self.tfidf = TfidfVectorizer(
+            tokenizer=self._parallel_tokenize,  # 使用并行分词
+            token_pattern=None,
+            max_features=2000  # 减少特征数量提高效率
+        )
+        # 配置SVD降维
+        self.svd = TruncatedSVD(
+            n_components=vector_size,
+            random_state=42,
+            algorithm='randomized'  # 使用随机算法加速
+        )
+        self.is_fitted = False
+
+        # 预加载结巴词典提高性能
+        jieba.initialize()
+
+    @lru_cache(maxsize=1000)  # 缓存分词结果
+    def _tokenize(self, text):
+        """对文本进行分词，使用缓存优化性能"""
+        text = re.sub(r'[^\w\s]', '', text)
+        words = jieba.lcut(text)
+        return [w for w in words if w.strip()]
+```
+
+这个检索系统的核心特点包括：
+
+1. **高效的文本处理**：
+
+   - 使用结巴分词处理中文文本
+   - 通过 LRU 缓存优化分词性能
+   - 支持并行处理长文本
+
+2. **智能的向量化策略**：
+
+   - 使用 TF-IDF 捕获词语重要性
+   - 通过 SVD 降维减少计算负担
+   - 特征数量自适应调整
+
+3. **准确的相似度匹配**：
+   - 基于余弦相似度计算文本相关性
+   - 支持批量计算提高效率
+   - 返回最相关的 top-k 个结果
+
+#### 3.3 分析提示构建
+
+在获取到相关的文本块后，系统通过 `get_analysis_prompt` 函数构建完整的分析提示：
 
 ```python
 def get_analysis_prompt(query, relevant_chunks, chat_history=None):
@@ -445,7 +587,7 @@ def get_analysis_prompt(query, relevant_chunks, chat_history=None):
     2. 上下文整合：将历史对话与当前问题结合
     3. 提示词工程：构建结构化的分析指令
     """
-    # 基础市场数据上下文
+    # 整合检索到的市场数据
     context = "\n".join([chunk for _, chunk in relevant_chunks])
 
     # 构建基础提示词
@@ -461,7 +603,7 @@ def get_analysis_prompt(query, relevant_chunks, chat_history=None):
 {context}
 """
 
-    # 整合对话历史
+    # 整合对话历史以支持多轮对话
     if chat_history and len(chat_history) > 0:
         prompt += "\n对话历史：\n"
         for i, (user_msg, assistant_msg) in enumerate(chat_history, 1):
@@ -469,12 +611,10 @@ def get_analysis_prompt(query, relevant_chunks, chat_history=None):
             prompt += f"用户：{user_msg}\n"
             prompt += f"助手：{assistant_msg}\n"
 
-    # 添加当前问题
-    prompt += f"\n当前用户问题：{query}"
+    prompt += f"\n当前用户问题：{query}\n"
 
-    # 添加角色指示
+    # 添加回答指导原则
     prompt += """
-
 请基于以上信息和对话历史，遵循以下原则回答：
 1. 用专业且通俗的语言回答问题，确保分析逻辑清晰
 2. 如果涉及到之前的对话内容，请保持分析的连贯性
@@ -486,18 +626,7 @@ def get_analysis_prompt(query, relevant_chunks, chat_history=None):
     return prompt
 ```
 
-智能问答系统的核心技术特点：
-
-- **RAG 检索增强生成**：
-
-  - 文本块构建：将市场数据结构化为可检索的文本块
-  - 向量化检索：使用 TF-IDF 和 SVD 进行文本向量化
-  - 相似度匹配：基于余弦相似度查找相关内容
-
-- **多轮对话管理**：
-  - 会话状态维护：使用 session_state 保存对话历史
-  - 上下文关联：将历史对话融入当前分析
-  - 动态提示词：根据对话历史调整回答策略
+这种三步走的设计（结构化处理、向量化检索、提示构建）让系统能够提供准确、专业且易于理解的市场分析服务。系统不仅能够准确找到相关信息，还能保持对话的连贯性和深度，同时平衡专业性和可理解性，为用户提供高质量的投资决策支持。
 
 ### 4. 数据处理优化
 
