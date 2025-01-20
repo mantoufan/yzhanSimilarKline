@@ -488,7 +488,7 @@ class ChineseTextVectorizer:
     def __init__(self, vector_size=100):
         self.vector_size = vector_size
         self.tfidf = TfidfVectorizer(
-            tokenizer=self._tokenize,
+            tokenizer=self._parallel_tokenize,  # 使用并行分词
             token_pattern=None,
             max_features=2000  # 减少特征数量
         )
@@ -520,6 +520,17 @@ class ChineseTextVectorizer:
         if norm > 0:
             vector = vector / norm
         return vector.flatten()
+    
+    def _parallel_tokenize(self, text):
+        # 对较长的文本进行分块
+        if len(text) < 1000:  # 短文本直接处理
+            return self._tokenize(text)
+            
+        # 长文本并行处理
+        chunks = self._split_text(text)
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(self._tokenize, chunks))
+        return [token for chunk_result in results for token in chunk_result]
 
 def call_llm_api(prompt):
     """调用 LLM API"""
