@@ -13,6 +13,9 @@ import re
 import adata
 import os
 from dotenv import load_dotenv
+from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
+from typing import List, Dict, Optional
 
 # 加载 .env 文件
 load_dotenv()
@@ -23,62 +26,153 @@ API_BASE = os.getenv('API_BASE') or st.secrets.get("API_BASE", "https://api.open
 MODEL = os.getenv('MODEL') or st.secrets.get("MODEL", "gpt-4o-mini")
 PROXY_URL = os.getenv('PROXY_URL') or st.secrets.get("PROXY_URL")
 
-def search_securities(query):
-    """搜索证券(指数、股票、基金、债券)"""
-    results = []
+@lru_cache(maxsize=2056)
+def load_security_data(security_type: str) -> pd.DataFrame:
+    """
+    加载并缓存证券数据
     
-    # 搜索指数
+    Args:
+        security_type: 证券类型 ('index', 'stock', 'etf')
+    
+    Returns:
+        pd.DataFrame: 包含证券信息的数据框
+    """
     try:
-        indices_df = adata.stock.info.all_index_code()
-        indices = indices_df[
-            (indices_df['index_code'].str.contains(query, case=False)) |
-            (indices_df['name'].str.contains(query, case=False))
-        ]
-        for _, row in indices.iterrows():
-            results.append({
-                'code': row['index_code'],
-                'name': row['name'],
-                'type': 'index',
-                'exchange': ''
-            })
-    except:
-        pass
+        if security_type == 'index':
+            return adata.stock.info.all_index_code()
+        elif security_type == 'stock':
+            return adata.stock.info.all_code()
+        elif security_type == 'etf':
+            return adata.fund.info.all_etf_exchange_traded_info()
+        else:
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"加载{security_type}数据时出错: {str(e)}")
+        return pd.DataFrame()
 
-    # 搜索股票
+def preprocess_query(query: str) -> str:
+    """
+    预处理搜索关键词
+    
+    Args:
+        query: 原始搜索关键词
+    
+    Returns:
+        str: 处理后的搜索关键词
+    """
+    # 移除特殊字符
+    query = re.sub(r'[^\w\s]', '', query)
+    # 转换为小写
+    query = query.lower()
+    # 移除多余空格
+    query = ' '.join(query.split())
+    return query
+
+def search_single_type(query: str, security_type: str) -> List[Dict]:
+    """
+    在单个证券类型中搜索
+    
+    Args:
+        query: 搜索关键词
+        security_type: 证券类型
+    
+    Returns:
+        List[Dict]: 搜索结果列表
+    """
+    results = []
+    df = load_security_data(security_type)
+    
+    if df.empty:
+        return results
+        
     try:
-        stocks_df = adata.stock.info.all_code()
-        stocks = stocks_df[
-            (stocks_df['stock_code'].str.contains(query, case=False)) |
-            (stocks_df['short_name'].str.contains(query, case=False))
-        ]
-        for _, row in stocks.iterrows():
+        # 根据证券类型确定代码和名称列
+        code_col = {
+            'index': 'index_code',
+            'stock': 'stock_code',
+            'etf': 'fund_code'
+        }.get(security_type)
+        
+        name_col = 'name' if security_type == 'index' else 'short_name'
+        
+        # 创建搜索条件
+        code_match = df[code_col].str.contains(query, case=False, na=False)
+        name_match = df[name_col].str.contains(query, case=False, na=False)
+        
+        # 应用搜索条件
+        matched_df = df[code_match | name_match]
+        
+        # 提取结果
+        for _, row in matched_df.iterrows():
             results.append({
-                'code': row['stock_code'],
-                'name': row['short_name'],
-                'type': 'stock',
-                'exchange': row['exchange']
+                'code': row[code_col],
+                'name': row[name_col],
+                'type': security_type,
+                'exchange': row.get('exchange', '')
             })
-    except:
-        pass
-
-    # 搜索ETF
-    try:
-        etfs_df = adata.fund.info.all_etf_exchange_traded_info()
-        etfs = etfs_df[
-            (etfs_df['fund_code'].str.contains(query, case=False)) |
-            (etfs_df['short_name'].str.contains(query, case=False))
-        ]
-        for _, row in etfs.iterrows():
-            results.append({
-                'code': row['fund_code'],
-                'name': row['short_name'],
-                'type': 'etf',
-                'exchange': ''
-            })
-    except:
-        pass
-
+            
+    except Exception as e:
+        print(f"搜索{security_type}时出错: {str(e)}")
+    
     return results
+
+def search_securities(query: str) -> List[Dict]:
+    """
+    搜索证券(指数、股票、基金)
+    
+    技术特点:
+    1. 使用 LRU 缓存优化数据加载
+    2. 多线程并行搜索提升性能
+    3. 关键词预处理提高匹配准确性
+    4. 异常处理确保功能稳定性
+    5. 类型注解增强代码可读性
+    
+    Args:
+        query: 搜索关键词(代码或名称)
+    
+    Returns:
+        List[Dict]: 搜索结果列表，每个结果包含:
+            - code: 证券代码
+            - name: 证券名称
+            - type: 证券类型
+            - exchange: 交易所
+    """
+    if not query or len(query.strip()) == 0:
+        return []
+        
+    # 预处理查询关键词
+    query = preprocess_query(query)
+    
+    # 使用线程池并行搜索不同类型的证券
+    security_types = ['index', 'stock', 'etf']
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [
+            executor.submit(search_single_type, query, security_type)
+            for security_type in security_types
+        ]
+        
+        # 收集所有结果
+        all_results = []
+        for future in futures:
+            try:
+                results = future.result()
+                all_results.extend(results)
+            except Exception as e:
+                print(f"获取搜索结果时出错: {str(e)}")
+                
+    # 按相关度排序结果
+    all_results.sort(key=lambda x: (
+        # 完全匹配代码的优先级最高
+        -int(x['code'].lower() == query),
+        # 其次是包含代码的
+        -int(query in x['code'].lower()),
+        # 再次是包含名称的
+        -int(query in x['name'].lower()),
+        # 最后按代码长度排序
+        len(x['code'])
+    ))
+    
+    return all_results
 
 def get_market_data(code, security_type, days=365*3):
     """获取市场数据"""
@@ -388,6 +482,7 @@ def compute_similarity(query_embedding, chunk_embedding):
     similarity = np.dot(query_embedding, chunk_embedding)
     return similarity
 
+@lru_cache(maxsize=2056)
 def retrieve_relevant_chunks(query, chunks, top_k=3):
     """检索与查询最相关的文本块"""
     vectorizer = ChineseTextVectorizer()
@@ -670,7 +765,7 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
 
 def main():
     if PROXY_URL: adata.proxy(is_proxy=True, proxy_url=PROXY_URL)
-    
+
     """
     主函数：实现金融数据分析系统的整体功能流程
     """
