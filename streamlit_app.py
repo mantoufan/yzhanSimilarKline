@@ -843,17 +843,18 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
     """
     显示支持多轮对话的智能问答界面
     """
-    st.markdown("""### 智能问答助手
-    <div style='background-color: #eef6ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;'>
-        📝 <strong>使用指南</strong>
-        <ul style='margin-top: 8px; margin-bottom: 8px;'>
-            <li>这是一个支持多轮对话的智能助手，您可以围绕一个话题深入交流</li>
-            <li>助手会记住对话内容，您可以基于之前的回答继续提问</li>
-            <li>随时可以要求助手解释某个观点，或者提供更详细的分析</li>
-            <li>如果分析不够清晰，请告诉助手"能具体说明一下吗？"</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""
+### 智能问答助手
+<div style='background-color: #eef6ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;'>
+    📝 <strong>使用指南</strong>
+    <ul style='margin-top: 8px; margin-bottom: 8px;'>
+        <li>这是一个支持多轮对话的智能助手，您可以围绕一个话题深入交流</li>
+        <li>助手会记住对话内容，您可以基于之前的回答继续提问</li>
+        <li>随时可以要求助手解释某个观点，或者提供更详细的分析</li>
+        <li>如果分析不够清晰，请告诉助手“具体说明一下吗？”/li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
 
     # 创建文本块用于检索
     chunks = create_text_chunks(security, current_df, similar_patterns, holding_stats)
