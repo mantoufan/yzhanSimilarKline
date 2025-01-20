@@ -135,7 +135,7 @@ def search_single_type(query: str, security_type: str) -> List[Dict]:
 @lru_cache(maxsize=2056)
 def search_securities(query: str) -> List[Dict]:
     """
-    搜索证券(指数、股票、基金 ETF)
+    搜索证券(指数、股票)
     
     技术特点:
     1. 使用 LRU 缓存优化数据加载
@@ -161,8 +161,8 @@ def search_securities(query: str) -> List[Dict]:
     query = preprocess_query(query)
     
     # 使用线程池并行搜索不同类型的证券
-    security_types = ['index', 'stock', 'etf']
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    security_types = ['index', 'stock']
+    with ThreadPoolExecutor(max_workers=2) as executor:
         futures = [
             executor.submit(search_single_type, query, security_type)
             for security_type in security_types
@@ -830,7 +830,7 @@ def main():
     """, unsafe_allow_html=True)
     
     # 搜索证券
-    query = st.text_input('输入指数/股票/基金 ETF 的代码或名称进行搜索', '', key='security_search')
+    query = st.text_input('输入指数/股票的代码或名称进行搜索', '', key='security_search')
     
     if query:
         results = search_securities(query)
