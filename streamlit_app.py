@@ -745,15 +745,18 @@ def create_text_chunks(security, current_df, similar_patterns, holding_stats):
     
     return chunks
 
-def get_analysis_prompt(query, relevant_chunks):
+def get_analysis_prompt(query, relevant_chunks, chat_history=None):
     """
-    构建带有检索上下文的分析提示
+    构建带有检索上下文和对话历史的分析提示
     
-    将相关的市场数据整合到提示中，引导模型基于实际数据进行分析，
-    同时提醒注意投资风险。
+    Args:
+        query: 当前用户问题
+        relevant_chunks: 相关的市场数据块
+        chat_history: 之前的对话历史记录，格式为 [(user_msg, assistant_msg), ...]
     """
     context = "\n".join([chunk for _, chunk in relevant_chunks])
     
+    # 构建提示的基础部分
     prompt = f"""作为一位专业的金融分析师，请基于以下相关市场数据回答用户问题。
 
 要求：
@@ -764,9 +767,30 @@ def get_analysis_prompt(query, relevant_chunks):
 
 相关市场数据：
 {context}
-
-用户问题：{query}
 """
+
+    # 如果存在对话历史，添加到提示中
+    if chat_history and len(chat_history) > 0:
+        prompt += "\n对话历史：\n"
+        for i, (user_msg, assistant_msg) in enumerate(chat_history, 1):
+            prompt += f"第{i}轮问答：\n"
+            prompt += f"用户：{user_msg}\n"
+            prompt += f"助手：{assistant_msg}\n"
+    
+    # 添加当前问题
+    prompt += f"\n当前用户问题：{query}"
+    
+    # 添加角色指示
+    prompt += """
+
+请基于以上信息和对话历史，遵循以下原则回答：
+1. 用专业且通俗的语言回答问题，确保分析逻辑清晰
+2. 如果涉及到之前的对话内容，请保持分析的连贯性
+3. 在回答中适当提供一些思考的切入点，引导用户进行更深入的提问
+4. 如果用户追问某个观点，请进一步展开解释背后的原理和依据
+5. 如果某个分析涉及到多个方面，可以明确指出，方便用户选择感兴趣的方向继续探讨
+"""
+    
     return prompt
 
 def display_market_analysis(current_df, similar_patterns, future_dates=None):
@@ -817,21 +841,52 @@ def display_market_analysis(current_df, similar_patterns, future_dates=None):
 
 def display_rag_qa(security, current_df, similar_patterns, holding_stats):
     """
-    显示智能问答界面
-    
-    整合RAG（检索增强生成）技术，为用户提供基于实际市场数据的智能问答服务。
+    显示支持多轮对话的智能问答界面
     """
-    st.markdown("### 智能问答助手")
+    st.markdown("""### 智能问答助手
+    <div style='background-color: #eef6ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;'>
+        📝 <strong>使用指南</strong>
+        <ul style='margin-top: 8px; margin-bottom: 8px;'>
+            <li>这是一个支持多轮对话的智能助手，您可以围绕一个话题深入交流</li>
+            <li>助手会记住对话内容，您可以基于之前的回答继续提问</li>
+            <li>随时可以要求助手解释某个观点，或者提供更详细的分析</li>
+            <li>如果分析不够清晰，请告诉助手"能具体说明一下吗？"</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 创建文本块用于检索
     chunks = create_text_chunks(security, current_df, similar_patterns, holding_stats)
     base_key = f"{security['code']}_{security['type']}"
     
-    # 用户输入问题
+    # 初始化会话状态
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+    
+    # 显示历史对话
+    for i, (user_msg, assistant_msg) in enumerate(st.session_state.chat_history):
+        with st.container():
+            # 用户消息
+            st.markdown(f"""
+            <div style='background-color: #f0f2f6; padding: 10px; border-radius: 8px; margin-bottom: 10px;'>
+                <span style='color: #666;'>👤 您：</span><br>
+                {user_msg}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 助手回复
+            st.markdown(f"""
+            <div style='background-color: #e8f4f9; padding: 10px; border-radius: 8px; margin-bottom: 20px;'>
+                <span style='color: #666;'>🤖 助手：</span><br>
+                {assistant_msg}
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # 用户输入新问题
     user_question = st.text_input(
         f"请输入您关于 {security['name']}（{security['code']}）的问题：", 
         key=f'rag_question_{base_key}',
-        help="您可以询问关于该证券的基本信息、最新行情、历史表现、相似K线分析等问题"
+        help="您可以：\n1. 询问基本信息、最新行情、历史表现、相似K线分析等内容\n2. 基于助手的回答继续追问，比如'为什么会这样预测？'\n3. 寻求更详细的解释，如'能具体解释一下这个原因吗？'\n4. 要求展开某个观点，如'刚才说到xxx，能详细分析一下吗？'"
     )
     
     if user_question:
@@ -840,13 +895,10 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
             relevant_chunks = retrieve_relevant_chunks(user_question, chunks, top_k=10)
             
             # 显示检索到的相关文本块
-            # 首先构建数据块的内容
             chunks_content = ""
             for _, chunk_text in relevant_chunks:
-                # 注意：移除了多余的缩进和换行
                 chunks_content += f'<p>{chunk_text}</p>'
 
-            # 注意：保持 HTML 结构紧凑，避免不必要的缩进和换行
             st.markdown(f'<details class="details" style="margin-top: -6px;">'
                     f'<summary class="details-summary">🔍 相关数据块（基于 RAG 结果）</summary>'
                     f'<div class="details-body details-body-related-chunks">'
@@ -854,14 +906,32 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                     f'</div>'
                     f'</details>', unsafe_allow_html=True)
             
-            # 构建prompt并调用API
-            prompt = get_analysis_prompt(user_question, relevant_chunks)
+            # 构建prompt并调用API，加入对话历史
+            prompt = get_analysis_prompt(
+                user_question, 
+                relevant_chunks, 
+                st.session_state.chat_history
+            )
             response = call_llm_api(prompt)
             
             if response:
-                # 显示分析结果
-                st.markdown("#### 分析回答：")
-                st.markdown(response)
+                # 保存新的对话记录
+                st.session_state.chat_history.append((user_question, response))
+                
+                # 显示最新的回复
+                st.markdown("""
+                <div style='background-color: #f0f2f6; padding: 10px; border-radius: 8px; margin-bottom: 10px;'>
+                    <span style='color: #666;'>👤 您：</span><br>
+                    {user_question}
+                </div>
+                """.format(user_question=user_question), unsafe_allow_html=True)
+                
+                st.markdown("""
+                <div style='background-color: #e8f4f9; padding: 10px; border-radius: 8px; margin-bottom: 20px;'>
+                    <span style='color: #666;'>🤖 助手：</span><br>
+                    {response}
+                </div>
+                """.format(response=response), unsafe_allow_html=True)
                 
                 # 添加免责声明
                 st.markdown("""
@@ -869,6 +939,14 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                 ⚠️ <strong>免责声明：</strong>以上分析仅供参考，不构成投资建议。投资有风险，入市需谨慎。
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # 清空输入框
+                st.text_input(
+                    f"请输入您关于 {security['name']}（{security['code']}）的问题或继续提问：",
+                    value="",
+                    key=f'rag_question_{base_key}_new',
+                    help="您可以询问关于该证券的基本信息、最新行情、历史表现、相似K线分析等问题。您也可以基于之前的对话继续提问。"
+                )
             else:
                 st.error("抱歉，获取回答失败，请稍后重试。")
 
