@@ -21,6 +21,7 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY') or st.secrets.get("API_KEY")
 API_BASE = os.getenv('API_BASE') or st.secrets.get("API_BASE", "https://api.openai.com")
 MODEL = os.getenv('MODEL') or st.secrets.get("MODEL", "gpt-4o-mini")
+PROXY_URL = os.getenv('PROXY_URL') or st.secrets.get("PROXY_URL")
 
 def search_securities(query):
     """搜索证券(指数、股票、基金、债券)"""
@@ -668,6 +669,8 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                 st.error("抱歉，获取回答失败，请稍后重试。")
 
 def main():
+    if PROXY_URL: adata.proxy(is_proxy=True, proxy_url=PROXY_URL)
+    
     """
     主函数：实现金融数据分析系统的整体功能流程
     """
