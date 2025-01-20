@@ -561,34 +561,653 @@ def file_cache(cache_dir="./data_cache", expire_days=1):
 
 ### 性能优化
 
-1. **缓存机制**💾：
-   - 内存缓存：`@lru_cache`装饰器
-   - 文件缓存：`@file_cache`装饰器
-   - 缓存过期管理 ⏰
-   - 异常处理机制 🚨
-2. **并行处理**🚀：
-   - 多线程搜索 🔍
-   - 异步数据加载 ⏳
-   - 资源池管理 🏊‍♂️
-   - 任务调度优化 🗓️
-3. **数据处理**🧹：
-   - 批量数据处理 📦
-   - 向量化运算 🧮
-   - 内存优化 💾
-   - 错误处理完善 🔧
+#### 1. 缓存机制 💾
+
+##### 内存缓存：`@lru_cache`装饰器
+
+```python
+from functools import lru_cache
+
+class ChineseTextVectorizer:
+    @lru_cache(maxsize=1000)  # 设置缓存大小为1000条记录
+    def _tokenize(self, text):
+        """
+        缓存分词结果以避免重复计算
+        技术要点：
+        1. LRU (Least Recently Used) 算法管理缓存
+        2. 分词结果的内存缓存
+        3. 自动过期的缓存管理
+        """
+        text = re.sub(r'[^\w\s]', '', text)
+        words = jieba.lcut(text)
+        return [w for w in words if w.strip()]
+
+@lru_cache(maxsize=2056)
+def search_securities(query: str) -> List[Dict]:
+    """搜索结果缓存，提升重复查询性能"""
+    # 实现代码...
+```
+
+##### 文件缓存：`@file_cache`装饰器
+
+```python
+def file_cache(cache_dir="./data_cache", expire_days=1):
+    """
+    支持过期时间的文件缓存装饰器
+
+    技术要点：
+    1. 使用JSON序列化存储数据
+    2. 基于时间戳的缓存过期检查
+    3. 文件级别的持久化存储
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            cache_key = f"{func.__name__}_{str(args)}_{str(kwargs)}"
+            cache_file = os.path.join(cache_dir, f"{cache_key}.json")
+            meta_file = os.path.join(cache_dir, f"{cache_key}_meta.json")
+
+            # 缓存验证和读取逻辑
+            if os.path.exists(cache_file) and os.path.exists(meta_file):
+                with open(meta_file, 'r') as f:
+                    meta = json.load(f)
+                cache_time = datetime.strptime(meta['timestamp'],
+                                             '%Y-%m-%d %H:%M:%S')
+
+                if datetime.now() - cache_time < timedelta(days=expire_days):
+                    with open(cache_file, 'r') as f:
+                        return json.load(f)
+
+            # 缓存不存在或已过期时的处理
+            results = func(*args, **kwargs)
+            os.makedirs(cache_dir, exist_ok=True)
+
+            # 保存数据和元数据
+            with open(cache_file, 'w') as f:
+                json.dump(results, f, ensure_ascii=False, indent=2)
+
+            meta = {
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'function': func.__name__,
+                'args': str(args),
+                'kwargs': str(kwargs)
+            }
+            with open(meta_file, 'w') as f:
+                json.dump(meta, f, ensure_ascii=False, indent=2)
+
+            return results
+        return wrapper
+    return decorator
+```
+
+##### 缓存过期管理 ⏰
+
+```python
+class CacheManager:
+    """
+    缓存过期管理器
+
+    技术要点：
+    1. 定时检查过期缓存
+    2. 自动清理失效数据
+    3. 缓存容量控制
+    """
+    def __init__(self, cache_dir):
+        self.cache_dir = cache_dir
+
+    def check_expiration(self):
+        for filename in os.listdir(self.cache_dir):
+            if filename.endswith('_meta.json'):
+                self._check_single_cache(filename)
+
+    def _check_single_cache(self, meta_filename):
+        with open(os.path.join(self.cache_dir, meta_filename)) as f:
+            meta = json.load(f)
+            cache_time = datetime.strptime(meta['timestamp'],
+                                         '%Y-%m-%d %H:%M:%S')
+            if datetime.now() - cache_time > timedelta(days=7):
+                self._remove_cache(meta_filename)
+```
+
+##### 异常处理机制 🚨
+
+```python
+class CacheError(Exception):
+    """缓存操作异常"""
+    pass
+
+def safe_cache_operation(func):
+    """
+    缓存操作的异常处理装饰器
+
+    技术要点：
+    1. 错误重试机制
+    2. 异常类型分类
+    3. 日志记录
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        for attempt in range(3):
+            try:
+                return func(*args, **kwargs)
+            except (IOError, OSError) as e:
+                if attempt == 2:
+                    raise CacheError(f"缓存操作失败: {str(e)}")
+                time.sleep(0.1 * (attempt + 1))
+    return wrapper
+```
+
+#### 2. 并行处理 🚀
+
+##### 多线程搜索 🔍
+
+```python
+def search_securities(query: str) -> List[Dict]:
+    """
+    并行证券搜索实现
+
+    技术要点：
+    1. ThreadPoolExecutor管理线程池
+    2. Future对象处理异步结果
+    3. 结果合并与排序
+    """
+    security_types = ['index', 'stock', 'etf']
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        # 并行搜索不同类型的证券
+        futures = [
+            executor.submit(search_single_type, query, security_type)
+            for security_type in security_types
+        ]
+
+        all_results = []
+        for future in futures:
+            try:
+                results = future.result(timeout=5)
+                all_results.extend(results)
+            except Exception as e:
+                logger.error(f"搜索失败: {str(e)}")
+```
+
+##### 异步数据加载 ⏳
+
+```python
+async def load_market_data(securities):
+    """
+    异步批量加载市场数据
+
+    技术要点：
+    1. asyncio异步IO
+    2. 并发控制
+    3. 超时处理
+    """
+    async def load_single(security):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"/api/market/{security['code']}") as resp:
+                    return await resp.json()
+        except Exception as e:
+            logger.error(f"加载失败: {str(e)}")
+            return None
+
+    tasks = [load_single(security) for security in securities]
+    return await asyncio.gather(*tasks)
+```
+
+##### 资源池管理 🏊‍♂️
+
+```python
+class ResourcePool:
+    """
+    资源池管理器
+
+    技术要点：
+    1. 连接池管理
+    2. 资源复用
+    3. 动态扩缩容
+    """
+    def __init__(self, min_size=5, max_size=20):
+        self.resources = queue.Queue(max_size)
+        self.min_size = min_size
+        self.max_size = max_size
+
+    def get_resource(self):
+        try:
+            return self.resources.get_nowait()
+        except queue.Empty:
+            if self.resources.qsize() < self.max_size:
+                return self._create_resource()
+            return self.resources.get()
+
+    def _create_resource(self):
+        # 创建新的资源连接
+        return Resource()
+```
+
+##### 任务调度优化 🗓️
+
+```python
+class TaskScheduler:
+    """
+    任务调度器
+
+    技术要点：
+    1. 优先级队列
+    2. 任务分片
+    3. 负载均衡
+    """
+    def __init__(self):
+        self.task_queue = PriorityQueue()
+        self.workers = []
+
+    def schedule(self, task, priority=0):
+        return self.task_queue.put((priority, task))
+
+    async def process_tasks(self):
+        while not self.task_queue.empty():
+            priority, task = self.task_queue.get()
+            worker = self._get_available_worker()
+            await worker.process(task)
+```
+
+#### 3. 数据处理 🧹
+
+##### 批量数据处理 📦
+
+```python
+def process_batch_data(data_frames: List[pd.DataFrame]) -> pd.DataFrame:
+    """
+    批量数据处理器
+
+    技术要点：
+    1. DataFrame批处理
+    2. 内存优化
+    3. 并行计算
+    """
+    # 使用pandas的concat优化合并操作
+    combined_df = pd.concat(data_frames, ignore_index=True)
+
+    # 应用向量化操作
+    combined_df['returns'] = combined_df.groupby('code')['close'].pct_change()
+
+    # 使用numba加速计算
+    @numba.jit(nopython=True)
+    def calculate_metrics(prices):
+        # 计算技术指标
+        return metrics
+
+    return combined_df
+```
+
+##### 向量化运算 🧮
+
+```python
+def vectorized_calculations(price_data: np.ndarray) -> np.ndarray:
+    """
+    向量化计算实现
+
+    技术要点：
+    1. NumPy向量运算
+    2. 批量矩阵操作
+    3. SIMD优化
+    """
+    # 计算移动平均
+    windows = np.lib.stride_tricks.sliding_window_view(price_data, window_shape=20)
+    ma = np.mean(windows, axis=1)
+
+    # 计算标准差
+    std = np.std(windows, axis=1)
+
+    # 计算动量指标
+    momentum = price_data[20:] / price_data[:-20] - 1
+
+    return np.column_stack([ma, std, momentum])
+```
+
+##### 内存优化 💾
+
+```python
+class MemoryOptimizer:
+    """
+    内存使用优化器
+
+    技术要点：
+    1. 数据类型优化
+    2. 内存碎片整理
+    3. 垃圾回收控制
+    """
+    @staticmethod
+    def optimize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+        # 优化数值类型
+        for col in df.select_dtypes(include=['float64']).columns:
+            df[col] = df[col].astype('float32')
+
+        # 优化分类数据
+        for col in df.select_dtypes(include=['object']).columns:
+            if df[col].nunique() / len(df) < 0.5:
+                df[col] = df[col].astype('category')
+
+        return df
+```
+
+##### 错误处理完善 🔧
+
+```python
+class ErrorHandler:
+    """
+    错误处理管理器
+
+    技术要点：
+    1. 异常分类处理
+    2. 错误重试策略
+    3. 日志记录系统
+    """
+    def __init__(self, logger):
+        self.logger = logger
+        self.retry_count = 3
+
+    def handle_error(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(self.retry_count):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    self.logger.error(f"错误: {str(e)}")
+                    if attempt == self.retry_count - 1:
+                        raise
+                    time.sleep(2 ** attempt)
+        return wrapper
+```
 
 ### AI 模型优化
 
-1. **RAG 技术增强**🧠：
-   - 改进文本块构建 📝
-   - 优化向量检索 🔍
-   - 增强相似度计算 📏
-   - 完善提示工程 💡
-2. **NLP 处理优化**🗣️：
-   - 分词性能提升 🚄
-   - 向量化效率优化 ⚡
-   - 相似度算法改进 🧮
-   - 结果排序优化 🏆
+#### 1. RAG 技术增强 🧠
+
+##### 改进文本块构建 📝
+
+```python
+def create_enhanced_chunks(text: str) -> List[Dict]:
+    """
+    增强的文本块构建
+
+    技术要点：
+    1. 语义分段
+    2. 重叠片段处理
+    3. 关键信息提取
+    """
+    chunks = []
+    sentences = nltk.sent_tokenize(text)
+
+    for i in range(0, len(sentences), 3):
+        chunk = {
+            'text': ' '.join(sentences[i:i+3]),
+            'keywords': extract_keywords(sentences[i:i+3]),
+            'embedding': None  # 稍后批量计算
+        }
+        chunks.append(chunk)
+
+    return chunks
+```
+
+##### 优化向量检索 🔍
+
+```python
+class VectorStore:
+    """
+    向量存储优化
+
+    技术要点：
+    1. FAISS索引
+    2. 批量检索
+    3. 索引优化
+    """
+    def __init__(self, dimension):
+        self.index = faiss.IndexFlatIP(dimension)
+
+    def batch_search(self, query_vectors: np.ndarray, k: int) -> Tuple[np.ndarray, np.ndarray]:
+        # 批量最近邻搜索
+        return self.index.search(query_vectors, k)
+```
+
+##### 增强相似度计算 📏
+
+```python
+def enhanced_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
+    """
+    增强的相似度计算
+
+    技术要点：
+    1. 余弦相似度
+    2. 欧氏距离
+    3. 混合评分
+    """
+    # 计算余弦相似度
+    cosine_sim = np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+    # 计算归一化欧氏距离
+    euclidean_dist = 1 / (1 + np.linalg.norm(vec1 - vec2))
+
+    # 混合评分
+    return 0.7 * cosine_sim + 0.3 * euclidean_dist
+```
+
+##### 完善提示工程 💡
+
+```python
+def create_enhanced_prompt(query: str, context: List[str]) -> str:
+    """
+    增强的提示词工程
+
+    技术要点：
+    1. 上下文注入
+    2. 任务导向提示
+    3. 约束设定
+    """
+    prompt_template = """基于以下市场数据回答问题：
+
+    {context}
+
+    问题：{query}
+
+    回答时请：
+    1. 引用相关数据支持论点
+    2. 说明判断依据
+    3. 指出不确定性
+    4. 提示投资风险
+    """
+
+    return prompt_template.format(
+        context="\n\n".join(context),
+        query=query
+    )
+```
+
+#### 2. NLP 处理优化 🗣️
+
+##### 分词性能提升 🚄
+
+```python
+class EnhancedTokenizer:
+    """
+    增强的分词器实现
+
+    技术要点：
+    1. 自定义词典加载
+    2. 缓存优化
+    3. 并行分词
+    """
+    def __init__(self):
+        self.tokenizer = jieba.Tokenizer()
+
+        # 加载自定义词典
+        self._load_custom_dict()
+
+        # 初始化缓存
+        self.cache = LRUCache(maxsize=10000)
+
+    def _load_custom_dict(self):
+        # 加载金融领域专用词典
+        financial_terms = [
+            ('股票', 100, 'n'),
+            ('期货', 100, 'n'),
+            ('k线', 100, 'n')
+        ]
+        for term, freq, pos in financial_terms:
+            self.tokenizer.add_word(term, freq, pos)
+
+    def tokenize(self, text: str) -> List[str]:
+        # 检查缓存
+        if text in self.cache:
+            return self.cache[text]
+
+        # 执行分词
+        tokens = self.tokenizer.lcut(text)
+
+        # 更新缓存
+        self.cache[text] = tokens
+        return tokens
+```
+
+##### 向量化效率优化 ⚡
+
+```python
+class OptimizedVectorizer:
+    """
+    优化的向量化处理器
+
+    技术要点：
+    1. 批量特征提取
+    2. 降维优化
+    3. 稀疏矩阵处理
+    """
+    def __init__(self, max_features=5000, n_components=200):
+        self.tfidf = TfidfVectorizer(
+            max_features=max_features,
+            token_pattern=None,
+            tokenizer=self._tokenize
+        )
+
+        # 使用随机化SVD提高效率
+        self.svd = TruncatedSVD(
+            n_components=n_components,
+            algorithm='randomized',
+            n_iter=5
+        )
+
+    def fit_transform(self, texts: List[str]) -> np.ndarray:
+        # 批量特征提取
+        tfidf_matrix = self.tfidf.fit_transform(texts)
+
+        # 降维处理
+        return self.svd.fit_transform(tfidf_matrix)
+
+    def transform(self, texts: List[str]) -> np.ndarray:
+        # 特征提取
+        tfidf_matrix = self.tfidf.transform(texts)
+
+        # 降维
+        return self.svd.transform(tfidf_matrix)
+```
+
+##### 相似度算法改进 🧮
+
+```python
+class SimilarityCalculator:
+    """
+    改进的相似度计算器
+
+    技术要点：
+    1. 多维相似度计算
+    2. 向量正则化
+    3. 权重动态调整
+    """
+    def __init__(self):
+        self.embeddings_cache = {}
+
+    def calculate_similarity(self, text1: str, text2: str) -> float:
+        # 获取或计算向量表示
+        vec1 = self._get_embedding(text1)
+        vec2 = self._get_embedding(text2)
+
+        # 计算多个相似度指标
+        cosine_sim = self._cosine_similarity(vec1, vec2)
+        jaccard_sim = self._jaccard_similarity(
+            set(text1.split()),
+            set(text2.split())
+        )
+
+        # 加权平均
+        return 0.7 * cosine_sim + 0.3 * jaccard_sim
+
+    def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
+        """计算余弦相似度"""
+        norm1 = np.linalg.norm(vec1)
+        norm2 = np.linalg.norm(vec2)
+        if norm1 == 0 or norm2 == 0:
+            return 0
+        return np.dot(vec1, vec2) / (norm1 * norm2)
+
+    def _jaccard_similarity(self, set1: Set[str], set2: Set[str]) -> float:
+        """计算Jaccard相似度"""
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        return intersection / union if union > 0 else 0
+```
+
+##### 结果排序优化 🏆
+
+```python
+class RankingOptimizer:
+    """
+    搜索结果排序优化器
+
+    技术要点：
+    1. 多特征排序
+    2. 动态权重
+    3. 个性化排序
+    """
+    def __init__(self):
+        self.ranker = LambdaMART()  # 使用LambdaMART排序算法
+
+    def create_features(self, query: str, results: List[Dict]) -> np.ndarray:
+        """为每个结果创建特征向量"""
+        features = []
+        for result in results:
+            feature_vector = [
+                self._text_similarity(query, result['title']),
+                self._text_similarity(query, result['content']),
+                result['popularity_score'],
+                result['freshness_score'],
+                self._user_relevance_score(result)
+            ]
+            features.append(feature_vector)
+        return np.array(features)
+
+    def rerank(self, query: str, results: List[Dict]) -> List[Dict]:
+        """重新排序搜索结果"""
+        if not results:
+            return []
+
+        # 提取特征
+        features = self.create_features(query, results)
+
+        # 预测相关性分数
+        scores = self.ranker.predict(features)
+
+        # 根据分数排序
+        ranked_indices = np.argsort(scores)[::-1]
+
+        return [results[i] for i in ranked_indices]
+```
+
+这些优化实现充分利用了现代 NLP 和机器学习技术，通过多层次的优化提升了系统的性能和效果。每个组件都经过精心设计，既保证了功能的完整性，又确保了运行效率。关键技术包括：
+
+1. 分词优化：通过缓存和并行处理提升分词性能
+2. 向量化处理：使用高效的特征提取和降维算法
+3. 相似度计算：结合多种算法提高匹配准确性
+4. 排序优化：采用机器学习方法改进搜索结果排序
+
+这些优化措施共同构建了一个高效、准确的智能分析系统。每个组件都可以根据具体需求进行进一步调整和优化。
 
 ## ⭐ 系统特点
 
