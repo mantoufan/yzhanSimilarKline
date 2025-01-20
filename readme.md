@@ -26,26 +26,27 @@
 - 其它关键词需要重新请求，大概需要等待 5 分钟甚至更长才有结果。⌛
 - 本地运行速度快得多 🚀
 
-[Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)
-
+[Demo Link](https://skline.streamlit.app/) | [Video Link](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
+动画演示：  
 ![https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif](https://i.miji.bid/2025/01/20/81b91ec44988bca0bbd6adb07570ccdb.gif)
 
 ## 🙏 致谢
 
 特别感谢阮光册教授在商业智能技术课程中对相关技术和案例的讲解，受益匪浅。教授的指导帮助我更深入地理解了商业智能技术的实际应用，为本项目的开发提供了宝贵的理论依据和思路方向。👨‍🏫
 
-## 📷 截图
+## 📷 步骤演示
 
+步骤 1：搜索 平安 / 上证指数 关键词，，其它关键词没有缓存可能要等 5 分钟  
 ![https://s2.loli.net/2025/01/20/GLUNQcoKB1yTM4p.png](https://s2.loli.net/2025/01/20/GLUNQcoKB1yTM4p.png)
-
+步骤 2：下拉查看历史相似 K 线图  
 ![https://s2.loli.net/2025/01/20/LprhMDcY7HvoqkA.png](https://s2.loli.net/2025/01/20/LprhMDcY7HvoqkA.png)
-
+步骤 3：基于最相似的 10 条历史 K 线，预测未来 7 个交易日的涨跌情况  
 ![https://s2.loli.net/2025/01/20/PROF6TxjEzoQtqw.png](https://s2.loli.net/2025/01/20/PROF6TxjEzoQtqw.png)
-
+步骤 4：如果当前交易日（非交易日最近），持有 1 - 7 交易日的收益率和胜率  
 ![https://s2.loli.net/2025/01/20/akrZ4QdLlyoSKIi.png](https://s2.loli.net/2025/01/20/akrZ4QdLlyoSKIi.png)
-
+步骤 5：据用户输入问题，查询最相似的，将结构化数据语义化的不同类型的数据块，嵌入提示词  
 ![https://s2.loli.net/2025/01/20/XR9diAVMw2SZOlo.png](https://s2.loli.net/2025/01/20/XR9diAVMw2SZOlo.png)
-
+步骤 6：根据内置 + 问题 + 嵌入数据块的提示词发给 GPT-4o-min，返回结果
 ![https://s2.loli.net/2025/01/20/OTaFQSLXkJ24xum.png](https://s2.loli.net/2025/01/20/OTaFQSLXkJ24xum.png)
 
 ## 🚀 快速开始
