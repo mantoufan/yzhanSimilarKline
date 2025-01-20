@@ -21,11 +21,10 @@
 
 ## 🎥 Demo
 
-在线使用：[阿里云节点（推荐，高速）](https://a.os120.com/)　　[谷歌云节点（慢）](https://skline.streamlit.app/)  
+在线使用：[阿里云节点（推荐，高速）](https://a.os120.com/)　[谷歌云节点（慢）](https://skline.streamlit.app/)  
 视频演示：[点击播放](https://drfs.ctcontents.com/file/3312/1449237316/62baf7/yun/business-ai-demo.mp4)  
 动画演示：  
 ![Screenity video - Jan 20, 2025](https://github.com/user-attachments/assets/ea639765-9e44-486a-a753-4841fdf1bc2d)
-
 
 ## 🙏 致谢
 
@@ -121,25 +120,65 @@
 ## 🏗️ 系统架构
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#ffffff' }}}%%
 graph TD
-    A[用户输入] --> B[证券搜索]
-    B --> C[市场数据获取]
-    C --> D[K线形态分析]
-    C --> E[智能问答系统]
+    %% Node Styles
+    classDef default fill:#ffffff,stroke:#666,stroke-width:2px
+    classDef inputClass fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    classDef searchClass fill:#fff8e1,stroke:#f57f17,stroke-width:3px
+    classDef dataClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    classDef analysisClass fill:#fce4ec,stroke:#c2185b,stroke-width:3px
+    classDef qaClass fill:#e8eaf6,stroke:#3f51b5,stroke-width:3px
+    classDef visualClass fill:#fff3e0,stroke:#e65100,stroke-width:3px
+    classDef cacheClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px
 
-    D --> D1[相似K线识别]
-    D --> D2[趋势预测]
-    D --> D3[风险分析]
+    %% Input and Search
+    A[用户输入查询]:::inputClass
+    B[证券搜索模块]:::searchClass
+    C[市场数据获取]:::dataClass
+    D[数据缓存层]:::cacheClass
 
-    E --> E1[文本块构建]
-    E --> E2[向量化检索]
-    E --> E3[LLM问答]
+    %% Technical Analysis
+    subgraph TA[技术分析引擎]
+        E[K线形态分析]:::analysisClass
+        F[相似度计算]:::analysisClass
+        G[趋势预测]:::analysisClass
+        H[风险分析]:::analysisClass
+    end
 
-    D1 & D2 & D3 --> F[可视化展示]
-    E1 & E2 & E3 --> G[分析结果]
+    %% Q&A System
+    subgraph QA[智能问答系统]
+        I[文本块构建]:::qaClass
+        J[向量化检索]:::qaClass
+        K[LLM问答生成]:::qaClass
+    end
 
-    F & G --> H[用户界面]
+    %% Visualization
+    subgraph VIZ[数据可视化]
+        L[K线图表]:::visualClass
+        M[相似度展示]:::visualClass
+        N[预测结果]:::visualClass
+        O[风险指标]:::visualClass
+    end
 
+    %% Connections
+    A --> B
+    B --> C
+    C <--> D
+    C --> E
+    E --> F
+    F --> G
+    G --> H
+    C --> I
+    I --> J
+    J --> K
+    E & F & G & H --> L & M & N & O
+    K --> O
+
+    %% Subgraph Styles
+    style TA fill:#ffffff,stroke:#666,stroke-width:3px
+    style QA fill:#ffffff,stroke:#666,stroke-width:3px
+    style VIZ fill:#ffffff,stroke:#666,stroke-width:3px
 ```
 
 ## 🎯 核心功能
