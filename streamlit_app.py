@@ -21,12 +21,28 @@ from typing import List, Dict, Optional
 load_dotenv()
 
 # API 配置 - 优先从 .env 读取，如果没有则从 streamlit 环境变量读取
-API_KEY = os.getenv('API_KEY') or st.secrets.get("API_KEY")
-API_BASE = os.getenv('API_BASE') or st.secrets.get("API_BASE", "https://api.openai.com")
-MODEL = os.getenv('MODEL') or st.secrets.get("MODEL", "gpt-4o-mini")
-PROXY_URL = os.getenv('PROXY_URL') or st.secrets.get("PROXY_URL")
+def get_config(key, default_value=""):
+    """安全地获取配置值，优先从环境变量获取，然后尝试从 secrets 获取"""
+    try:
+        # 首先尝试从环境变量获取
+        value = os.getenv(key)
+        if value is not None:
+            return value
+            
+        # 如果环境变量不存在，尝试从 secrets 获取
+        try:
+            return st.secrets.get(key, default_value)
+        except FileNotFoundError:
+            return default_value
+    except Exception:
+        return default_value
 
-@lru_cache(maxsize=2056)
+# 使用新的配置获取函数
+API_KEY = get_config('API_KEY')
+API_BASE = get_config('API_BASE', "https://api.openai.com")
+MODEL = get_config('MODEL', "gpt-4o-mini")
+PROXY_URL = get_config('PROXY_URL')
+
 def load_security_data(security_type: str) -> pd.DataFrame:
     """
     加载并缓存证券数据
@@ -116,9 +132,10 @@ def search_single_type(query: str, security_type: str) -> List[Dict]:
     
     return results
 
+@lru_cache(maxsize=2056)
 def search_securities(query: str) -> List[Dict]:
     """
-    搜索证券(指数、股票、基金)
+    搜索证券(指数、股票、基金 ETF)
     
     技术特点:
     1. 使用 LRU 缓存优化数据加载
@@ -482,7 +499,6 @@ def compute_similarity(query_embedding, chunk_embedding):
     similarity = np.dot(query_embedding, chunk_embedding)
     return similarity
 
-@lru_cache(maxsize=2056)
 def retrieve_relevant_chunks(query, chunks, top_k=3):
     """检索与查询最相关的文本块"""
     vectorizer = ChineseTextVectorizer()
@@ -534,12 +550,12 @@ def create_text_chunks(security, current_df, similar_patterns, holding_stats):
         # 添加最新行情信息
         latest_data = current_df.iloc[-1]
         latest_market = f"""
-        最新市场行情（{latest_data['trade_date'].strftime('%Y-%m-%d')}）：
-        收盘价：{latest_data['close']:.2f}
-        开盘价：{latest_data['open']:.2f}
-        最高价：{latest_data['high']:.2f}
-        最低价：{latest_data['low']:.2f}
-        成交量：{latest_data.get('volume', '未知')}
+            最新市场行情（{latest_data['trade_date'].strftime('%Y-%m-%d')}）：
+            收盘价：{latest_data['close']:.2f}
+            开盘价：{latest_data['open']:.2f}
+            最高价：{latest_data['high']:.2f}
+            最低价：{latest_data['low']:.2f}
+            成交量：{latest_data.get('volume', '未知')}
         """
         chunks.append(("latest_market", latest_market))
         
@@ -660,7 +676,7 @@ def get_analysis_prompt(query, relevant_chunks):
 """
     return prompt
 
-def display_market_analysis(current_df, similar_patterns):
+def display_market_analysis(current_df, similar_patterns, future_dates=None):
     """
     市场分析主函数，集成K线展示、技术分析和智能问答功能
     """
@@ -672,7 +688,7 @@ def display_market_analysis(current_df, similar_patterns):
     with st.container():
         st.markdown("### 当前K线图")
         if not current_df.empty:
-            fig = plot_kline(current_df, "")
+            fig = plot_kline(current_df, "", future_dates=future_dates)
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.write("无法生成K线图")
@@ -764,11 +780,12 @@ def display_rag_qa(security, current_df, similar_patterns, holding_stats):
                 st.error("抱歉，获取回答失败，请稍后重试。")
 
 def main():
-    if PROXY_URL: adata.proxy(is_proxy=True, proxy_url=PROXY_URL)
-
     """
     主函数：实现金融数据分析系统的整体功能流程
     """
+
+    if PROXY_URL: adata.proxy(is_proxy=True, proxy_url=PROXY_URL)
+
     st.title('A 股数据智能分析系统')
 
     # 显示标题和作者信息
@@ -813,7 +830,7 @@ def main():
     """, unsafe_allow_html=True)
     
     # 搜索证券
-    query = st.text_input('输入指数/股票/基金的代码或名称进行搜索', '', key='security_search')
+    query = st.text_input('输入指数/股票/基金 ETF 的代码或名称进行搜索', '', key='security_search')
     
     if query:
         results = search_securities(query)
@@ -842,12 +859,20 @@ def main():
                     if market_data is not None:
                         # 获取最近一个月数据用于分析
                         current_month_data = market_data.tail(30).copy()
+
+                        # 生成未来7个交易日的日期
+                        last_date = current_month_data['trade_date'].iloc[-1]
+                        future_dates = pd.date_range(
+                            start=last_date + pd.Timedelta(days=1),
+                            periods=7,
+                            freq='B'  # 'B' 表示工作日
+                        )
                         
                         # 寻找相似K线形态
                         similar_patterns = find_similar_patterns(market_data, window_size=30, top_n=10)
                         
                         # 显示市场分析
-                        holding_stats = display_market_analysis(current_month_data, similar_patterns)
+                        holding_stats = display_market_analysis(current_month_data, similar_patterns, future_dates)
   
                         # 显示智能问答界面
                         if holding_stats is not None:
@@ -1053,13 +1078,16 @@ def create_trend_analysis_grid(stats):
             cursor: pointer;
         }
         .details-body {
-            font-size: 12px;
             background-color: #f9f9f9;
             padding: 10px;
             margin: 5px 0;
             border-radius: 4px;
-            white-space: pre-wrap;
             font-family: monospace;
+        }
+
+        .details-body-related-chunks {
+            font-size: 12px;
+            white-space: pre-wrap;
         }
 
         .details-body-related-chunks p {
