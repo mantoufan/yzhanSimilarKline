@@ -1,0 +1,584 @@
+[
+  {
+    "code": "000078",
+    "name": "海王生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000403",
+    "name": "派林生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000504",
+    "name": "南华生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "000518",
+    "name": "四环生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002007",
+    "name": "华兰生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002022",
+    "name": "科华生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002100",
+    "name": "天康生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002166",
+    "name": "莱茵生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002688",
+    "name": "金河生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002880",
+    "name": "卫光生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "002932",
+    "name": "明德生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "003017",
+    "name": "大洋生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300009",
+    "name": "安科生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300119",
+    "name": "瑞普生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300122",
+    "name": "智飞生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300138",
+    "name": "晨光生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300142",
+    "name": "沃森生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300238",
+    "name": "冠昊生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300239",
+    "name": "东宝生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300294",
+    "name": "博雅生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300298",
+    "name": "三诺生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300357",
+    "name": "我武生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300401",
+    "name": "花园生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300406",
+    "name": "九强生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300439",
+    "name": "美康生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300463",
+    "name": "迈克生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300482",
+    "name": "万孚生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300511",
+    "name": "雪榕生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300529",
+    "name": "健帆生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300583",
+    "name": "赛托生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300601",
+    "name": "康泰生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300639",
+    "name": "凯普生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300653",
+    "name": "正海生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300683",
+    "name": "海特生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300685",
+    "name": "艾德生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300813",
+    "name": "泰林生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300841",
+    "name": "康华生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300858",
+    "name": "科拓生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300871",
+    "name": "回盛生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300942",
+    "name": "易瑞生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "300970",
+    "name": "华绿生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "301156",
+    "name": "美农生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "301206",
+    "name": "三元生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "301301",
+    "name": "川宁生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "301393",
+    "name": "昊帆生物",
+    "type": "stock",
+    "exchange": "SZ"
+  },
+  {
+    "code": "430685",
+    "name": "新芝生物",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "600161",
+    "name": "天坛生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "600201",
+    "name": "生物股份",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "600873",
+    "name": "梅花生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603077",
+    "name": "和邦生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603079",
+    "name": "圣达生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603387",
+    "name": "基蛋生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603392",
+    "name": "万泰生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603658",
+    "name": "安图生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603717",
+    "name": "天域生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603718",
+    "name": "海利生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603739",
+    "name": "蔚蓝生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "603983",
+    "name": "丸美生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688026",
+    "name": "洁特生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688046",
+    "name": "药康生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688062",
+    "name": "迈威生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688065",
+    "name": "凯赛生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688068",
+    "name": "热景生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688075",
+    "name": "安旭生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688076",
+    "name": "诺泰生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688098",
+    "name": "申联生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688117",
+    "name": "圣诺生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688139",
+    "name": "海尔生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688163",
+    "name": "赛伦生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688180",
+    "name": "君实生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688193",
+    "name": "仁度生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688221",
+    "name": "前沿生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688238",
+    "name": "和元生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688265",
+    "name": "南模生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688276",
+    "name": "百克生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688278",
+    "name": "特宝生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688289",
+    "name": "圣湘生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688298",
+    "name": "东方生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688317",
+    "name": "之江生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688319",
+    "name": "欧林生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688321",
+    "name": "微芯生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688331",
+    "name": "荣昌生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688363",
+    "name": "华熙生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688382",
+    "name": "益方生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688399",
+    "name": "硕世生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688513",
+    "name": "苑东生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688526",
+    "name": "科前生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688606",
+    "name": "奥泰生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688639",
+    "name": "华恒生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688739",
+    "name": "成大生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "688767",
+    "name": "博拓生物",
+    "type": "stock",
+    "exchange": "SH"
+  },
+  {
+    "code": "832982",
+    "name": "锦波生物",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "833266",
+    "name": "生物谷",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "833819",
+    "name": "颖泰生物",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "836504",
+    "name": "博迅生物",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "839729",
+    "name": "永顺生物",
+    "type": "stock",
+    "exchange": "BJ"
+  },
+  {
+    "code": "871970",
+    "name": "大禹生物",
+    "type": "stock",
+    "exchange": "BJ"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "code": "483102",
+    "name": "内地生物科技R(港币)",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "983102",
+    "name": "内地生物科技(港币)",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "983101",
+    "name": "内地生物科技",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "483101",
+    "name": "内地生物科技R",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "399441",
+    "name": "生物医药",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "970038",
+    "name": "生物经济",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "470038",
+    "name": "生物经济R",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "399280",
+    "name": "生物50",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "980072",
+    "name": "生物农业",
+    "type": "index",
+    "exchange": ""
+  },
+  {
+    "code": "480072",
+    "name": "生物农业R",
+    "type": "index",
+    "exchange": ""
+  }
+]

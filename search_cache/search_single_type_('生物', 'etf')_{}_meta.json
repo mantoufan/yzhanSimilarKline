@@ -1,0 +1,6 @@
+{
+  "timestamp": "2025-01-21 06:54:22",
+  "function": "search_single_type",
+  "args": "('生物', 'etf')",
+  "kwargs": "{}"
+}
